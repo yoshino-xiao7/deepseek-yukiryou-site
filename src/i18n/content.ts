@@ -2,6 +2,7 @@
  * 全站中英双语内容字典。
  * 简体中文为默认语言（挂在 / 下），英文挂在 /en/ 下。
  */
+import release from '../generated/release.json';
 
 export type Lang = 'zh-CN' | 'en';
 
@@ -24,7 +25,8 @@ export const PROJECT = {
     'https://github.com/yoshino-xiao7/deepseek-harness-desktop-yukiryou/issues',
   license: 'https://github.com/yoshino-xiao7/deepseek-harness-desktop-yukiryou/blob/main/LICENSE',
   icon: '/app-icon-512.png',
-  version: '0.2.1-beta.1',
+  /** 版本号：构建时由 scripts/fetch-release.mjs 从 GitHub Releases 动态获取 */
+  version: release.version,
   dmgName: 'DeepSeek.YukiRyou-<version>-arm64.dmg',
 } as const;
 

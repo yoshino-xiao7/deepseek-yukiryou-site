@@ -81,7 +81,7 @@ CLI 详情见 [EdgeOne CLI 文档](https://cdn.jsdelivr.net/npm/edgeone@latest/R
 
 | 位置 | 说明 |
 | --- | --- |
-| `src/i18n/content.ts` 中 `PROJECT.version` | 随应用版本号更新 |
+| 版本号 | 无需手动维护：`pnpm build` 前由 `scripts/fetch-release.mjs` 自动从 GitHub Releases 获取，失败时回退到 `src/generated/release.json` 中已有值 |
 | `astro.config.mjs` 中 `site` | 若域名变更，同步修改 canonical/sitemap |
 | `scripts/prepare-assets.mjs` 中 `ICON_URL` | 图标源地址 |
 | `public/og-cover.png` | 品牌视觉更新时重新生成（`pnpm assets`） |
