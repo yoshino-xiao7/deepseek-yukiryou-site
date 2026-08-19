@@ -1,0 +1,123 @@
+---
+/**
+ * 路线图：开发中 / 规划中
+ */
+import Icon from './Icon.astro';
+import { type Dict } from '../i18n/content';
+
+interface Props {
+  dict: Dict;
+}
+
+const { dict } = Astro.props;
+
+const statusIcon: Record<string, string> = {
+  dev: 'spark',
+  planned: 'list',
+};
+---
+
+<section class="section" id="roadmap">
+  <div class="container">
+    <div class="section-head section-head--center reveal">
+      <span class="eyebrow">{dict.roadmap.eyebrow}</span>
+      <h2 class="section-title">{dict.roadmap.title}</h2>
+      <p class="section-sub">{dict.roadmap.subtitle}</p>
+    </div>
+
+    <div class="roadmap-grid">
+      {dict.roadmap.items.map((item, i) => (
+        <article class="roadmap-card reveal" style={`--d: ${i * 70}ms`}>
+          <span class:list={['roadmap-status', `status-${item.status}`]}>
+            <Icon name={statusIcon[item.status]} size={12} />
+            {item.statusLabel}
+          </span>
+          <h3 class="roadmap-title">{item.title}</h3>
+          <p class="roadmap-desc">{item.desc}</p>
+        </article>
+      ))}
+    </div>
+
+    <p class="roadmap-note reveal">
+      <Icon name="shield" size={14} />
+      {dict.roadmap.note}
+    </p>
+  </div>
+</section>
+
+<style>
+  .roadmap-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 768px) {
+    .roadmap-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .roadmap-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .roadmap-status {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 650;
+    border-radius: 999px;
+    padding: 5px 11px;
+  }
+
+  .status-dev {
+    color: var(--amber);
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+  }
+
+  .status-planned {
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+  }
+
+  .roadmap-title {
+    font-size: 18px;
+    font-weight: 650;
+  }
+
+  .roadmap-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+
+  .roadmap-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 28px;
+    font-size: 13px;
+    color: var(--text-faint);
+    max-width: 720px;
+    margin-inline: auto;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .roadmap-note :global(svg) {
+    color: var(--accent-hover);
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+</style>

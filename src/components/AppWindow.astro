@@ -1,0 +1,479 @@
+---
+/**
+ * 应用窗口示意：纯 CSS 绘制的 macOS 窗口，
+ * 展示 Harness 界面 + 文件树 + Git 变更右栏。
+ */
+import { type Dict } from '../i18n/content';
+
+interface Props {
+  dict: Dict;
+}
+
+const { dict } = Astro.props;
+---
+
+<div class="app-window" aria-hidden="true">
+  <!-- 标题栏 -->
+  <div class="titlebar">
+    <span class="traffic"><i class="dot dot-red"></i><i class="dot dot-yellow"></i><i class="dot dot-green"></i></span>
+    <span class="title">DeepSeek YukiRyou</span>
+    <span class="balance-chip">
+      <span class="balance-dot"></span>
+      {dict.window.balance} · 128.42
+    </span>
+  </div>
+
+  <!-- 标签栏 -->
+  <div class="tabbar">
+    <span class="tab tab-active">{dict.window.tabFiles}</span>
+    <span class="tab">{dict.window.tabChanges}</span>
+    <span class="tabs-spacer"></span>
+  </div>
+
+  <div class="window-body">
+    <!-- 文件树 -->
+    <aside class="pane pane-files">
+      <p class="pane-title">{dict.window.fileTree}</p>
+      <ul class="tree">
+        <li class="tree-item tree-folder">
+          <span class="tree-caret">▾</span> src
+        </li>
+        <li class="tree-item tree-file"><span class="tree-caret">·</span> agent.ts</li>
+        <li class="tree-item tree-file"><span class="tree-caret">·</span> plugin.ts</li>
+        <li class="tree-item tree-file tree-active"><span class="tree-caret">·</span> workspace.ts</li>
+        <li class="tree-item tree-folder"><span class="tree-caret">▸</span> docs</li>
+        <li class="tree-item tree-file"><span class="tree-caret">·</span> package.json</li>
+        <li class="tree-item tree-file"><span class="tree-caret">·</span> README.md</li>
+      </ul>
+    </aside>
+
+    <!-- Harness 主界面 -->
+    <section class="pane pane-chat">
+      <div class="chat-row chat-assistant">
+        <span class="avatar avatar-blue"></span>
+        <div class="bubble bubble-soft">
+          <i class="sk sk-line w-100"></i>
+          <i class="sk sk-line w-80"></i>
+        </div>
+      </div>
+      <div class="chat-row chat-tool">
+        <span class="tool-badge"><i class="sk sk-line w-40"></i></span>
+        <div class="bubble bubble-code">
+          <i class="sk sk-line w-60 mono"></i>
+          <i class="sk sk-line w-90 mono"></i>
+          <i class="sk sk-line w-70 mono"></i>
+        </div>
+      </div>
+      <div class="chat-row chat-assistant">
+        <span class="avatar avatar-blue"></span>
+        <div class="bubble bubble-soft">
+          <i class="sk sk-line w-90"></i>
+          <i class="sk sk-line w-60"></i>
+          <span class="check-chip">✓ 3 文件已修改</span>
+        </div>
+      </div>
+      <div class="chat-input">
+        <span class="placeholder">{dict.window.chatPlaceholder}</span>
+        <span class="send-btn"></span>
+      </div>
+    </section>
+
+    <!-- 变更审阅右栏 -->
+    <aside class="pane pane-diff">
+      <p class="pane-title">{dict.window.gitChanges}</p>
+      <div class="diff-file">
+        <span class="diff-name">src/workspace.ts</span>
+        <span class="diff-stats"><b class="add">+12</b> <b class="del">-3</b></span>
+      </div>
+      <div class="diff-lines">
+        <span class="dl dl-add"></span>
+        <span class="dl dl-add"></span>
+        <span class="dl dl-ctx"></span>
+        <span class="dl dl-del"></span>
+        <span class="dl dl-add"></span>
+        <span class="dl dl-ctx"></span>
+      </div>
+      <div class="diff-file">
+        <span class="diff-name">README.md</span>
+        <span class="diff-stats"><b class="add">+8</b> <b class="del">-0</b></span>
+      </div>
+      <div class="diff-lines">
+        <span class="dl dl-add"></span>
+        <span class="dl dl-add"></span>
+        <span class="dl dl-ctx"></span>
+        <span class="dl dl-add"></span>
+      </div>
+      <div class="diff-summary">
+        <span class="dot dot-green"></span>
+        {dict.window.linesAdded} 12 · {dict.window.linesRemoved} 3
+      </div>
+    </aside>
+  </div>
+</div>
+
+<style>
+  .app-window {
+    width: 100%;
+    max-width: 640px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-strong);
+    background: linear-gradient(180deg, #0d1320 0%, #090d15 100%);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.03),
+      0 24px 64px -24px rgba(0, 0, 0, 0.8),
+      0 0 80px -20px rgba(77, 107, 254, 0.25);
+    overflow: hidden;
+  }
+
+  /* 标题栏 */
+  .titlebar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .traffic {
+    display: inline-flex;
+    gap: 7px;
+  }
+
+  .dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .dot-red {
+    background: #ff5f57;
+  }
+  .dot-yellow {
+    background: #febc2e;
+  }
+  .dot-green {
+    background: #28c840;
+  }
+  .dot-blue {
+    background: var(--accent);
+  }
+
+  .title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .balance-chip {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+
+  .balance-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+  }
+
+  /* 标签栏 */
+  .tabbar {
+    display: flex;
+    gap: 4px;
+    padding: 8px 14px 0;
+  }
+
+  .tab {
+    font-size: 12px;
+    color: var(--text-faint);
+    padding: 7px 14px;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .tab-active {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-bottom-color: transparent;
+  }
+
+  .tabs-spacer {
+    flex: 1;
+    border-bottom: 1px solid var(--border);
+    margin: 0 2px;
+  }
+
+  /* 主体三栏 */
+  .window-body {
+    display: grid;
+    grid-template-columns: 132px 1fr 168px;
+    min-height: 300px;
+    border-top: 1px solid var(--border);
+  }
+
+  .pane {
+    padding: 14px;
+    min-width: 0;
+  }
+
+  .pane-files {
+    border-right: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.015);
+  }
+
+  .pane-diff {
+    border-left: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.015);
+  }
+
+  .pane-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 0 0 10px;
+  }
+
+  .tree {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .tree-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tree-caret {
+    font-size: 10px;
+    color: var(--text-faint);
+    width: 10px;
+  }
+
+  .tree-folder {
+    color: var(--text);
+  }
+
+  .tree-active {
+    color: var(--accent-hover);
+  }
+
+  /* 对话区 */
+  .pane-chat {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.008);
+  }
+
+  .chat-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .avatar-blue {
+    background: linear-gradient(135deg, #6b84ff, #3157a4);
+  }
+
+  .bubble {
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .bubble-soft {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .bubble-code {
+    background: rgba(49, 87, 164, 0.16);
+    border: 1px solid rgba(77, 107, 254, 0.22);
+    font-family: var(--font-mono);
+  }
+
+  .tool-badge {
+    background: rgba(77, 107, 254, 0.2);
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+    padding: 6px 8px;
+    flex-shrink: 0;
+  }
+
+  .check-chip {
+    font-size: 11px;
+    color: var(--green);
+    background: rgba(52, 211, 153, 0.1);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+    border-radius: 999px;
+    padding: 3px 9px;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
+  .chat-input {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .placeholder {
+    font-size: 12px;
+    color: var(--text-faint);
+    flex: 1;
+  }
+
+  .send-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* 骨架线条 */
+  .sk {
+    display: block;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .sk.mono {
+    height: 7px;
+    background: rgba(140, 168, 255, 0.28);
+  }
+
+  .w-40 {
+    width: 40%;
+  }
+  .w-60 {
+    width: 60%;
+  }
+  .w-70 {
+    width: 70%;
+  }
+  .w-80 {
+    width: 80%;
+  }
+  .w-90 {
+    width: 90%;
+  }
+  .w-100 {
+    width: 100%;
+  }
+
+  /* 变更右栏 */
+  .diff-file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .diff-name {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .diff-stats {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+  }
+
+  .add {
+    color: var(--green);
+  }
+  .del {
+    color: var(--red);
+  }
+
+  .diff-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+
+  .dl {
+    height: 7px;
+    border-radius: 3px;
+  }
+
+  .dl-add {
+    background: rgba(52, 211, 153, 0.35);
+  }
+  .dl-del {
+    background: rgba(248, 113, 113, 0.35);
+  }
+  .dl-ctx {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .diff-summary {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* 响应式：小屏隐藏左右栏，突出对话区 */
+  @media (max-width: 720px) {
+    .window-body {
+      grid-template-columns: 1fr;
+    }
+    .pane-files,
+    .pane-diff {
+      display: none;
+    }
+  }
+</style>

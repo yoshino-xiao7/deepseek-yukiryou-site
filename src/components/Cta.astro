@@ -1,0 +1,95 @@
+---
+/**
+ * 底部 CTA 横幅
+ */
+import Icon from './Icon.astro';
+import { PROJECT, type Dict } from '../i18n/content';
+
+interface Props {
+  dict: Dict;
+}
+
+const { dict } = Astro.props;
+---
+
+<section class="cta">
+  <div class="container">
+    <div class="cta-card reveal">
+      <span class="cta-spark" aria-hidden="true">
+        <Icon name="spark" size={26} />
+      </span>
+      <h2 class="cta-title">{dict.cta.title}</h2>
+      <p class="cta-sub">{dict.cta.subtitle}</p>
+      <div class="cta-actions">
+        <a class="btn btn-primary btn-lg" href={PROJECT.latest}>
+          <Icon name="download" size={17} />
+          {dict.cta.download}
+        </a>
+        <a class="btn btn-secondary btn-lg" href={PROJECT.repo}>
+          <Icon name="star" size={17} />
+          {dict.cta.star}
+        </a>
+        <a class="btn btn-ghost btn-lg" href={PROJECT.issues}>
+          <Icon name="external" size={15} />
+          {dict.cta.feedback}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta {
+    padding-block: 40px 88px;
+  }
+
+  .cta-card {
+    position: relative;
+    text-align: center;
+    background:
+      radial-gradient(
+        65% 90% at 50% 0%,
+        rgba(77, 107, 254, 0.18),
+        transparent 70%
+      ),
+      linear-gradient(180deg, #0c1220, var(--bg-card));
+    border: 1px solid var(--accent-border);
+    border-radius: calc(var(--radius-lg) + 8px);
+    padding: 56px 32px;
+    overflow: hidden;
+  }
+
+  .cta-spark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    color: var(--accent-hover);
+    margin-bottom: 22px;
+  }
+
+  .cta-title {
+    font-size: clamp(24px, 3.6vw, 34px);
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  .cta-sub {
+    max-width: 560px;
+    margin: 0 auto 30px;
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--text-muted);
+  }
+
+  .cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+  }
+</style>

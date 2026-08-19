@@ -1,0 +1,44 @@
+---
+/**
+ * English landing page (/en/)
+ */
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Features from '../../components/Features.astro';
+import Why from '../../components/Why.astro';
+import HowItWorks from '../../components/HowItWorks.astro';
+import Install from '../../components/Install.astro';
+import Roadmap from '../../components/Roadmap.astro';
+import Security from '../../components/Security.astro';
+import Faq from '../../components/Faq.astro';
+import Cta from '../../components/Cta.astro';
+import { t, faqJsonLd } from '../../i18n/content';
+
+const lang = 'en' as const;
+const dict = t[lang];
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqJsonLd(lang).map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer,
+    },
+  })),
+};
+---
+
+<Base lang={lang} dict={dict} jsonLd={[faqLd]}>
+  <Hero dict={dict} />
+  <Features dict={dict} />
+  <Why dict={dict} />
+  <HowItWorks dict={dict} />
+  <Install dict={dict} />
+  <Roadmap dict={dict} />
+  <Security dict={dict} />
+  <Faq dict={dict} />
+  <Cta dict={dict} />
+</Base>

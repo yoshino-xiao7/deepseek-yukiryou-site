@@ -1,0 +1,239 @@
+---
+/**
+ * 安装：三步 + 系统要求 + 校验说明
+ */
+import Icon from './Icon.astro';
+import { PROJECT, type Dict } from '../i18n/content';
+
+interface Props {
+  dict: Dict;
+}
+
+const { dict } = Astro.props;
+---
+
+<section class="section section-alt" id="install">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">{dict.install.eyebrow}</span>
+      <h2 class="section-title">{dict.install.title}</h2>
+      <p class="section-sub">{dict.install.subtitle}</p>
+    </div>
+
+    <div class="install-grid">
+      <ol class="install-steps">
+        {dict.install.steps.map((step, i) => (
+          <li class="install-step reveal" style={`--d: ${i * 70}ms`}>
+            <span class="step-num">{i + 1}</span>
+            <div>
+              <h3 class="step-title">{step.title}</h3>
+              <p class="step-desc">{step.desc}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <aside class="install-side reveal">
+        <div class="side-card">
+          <h3 class="side-title">
+            <Icon name="apple" size={17} />
+            {dict.install.requirementsTitle}
+          </h3>
+          <ul class="side-list">
+            {dict.install.requirements.map((r) => (
+              <li>
+                <Icon name="check" size={13} />
+                {r}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div class="side-card">
+          <h3 class="side-title">
+            <Icon name="file" size={16} />
+            {dict.install.fileNameTitle}
+          </h3>
+          <code class="dmg-name">{PROJECT.dmgName}</code>
+          <p class="side-note">{dict.install.fileNameDesc}</p>
+          <p class="side-note side-note-strong">
+            <Icon name="shield" size={13} />
+            {dict.install.shaNote}
+          </p>
+        </div>
+
+        <a class="btn btn-primary btn-block" href={PROJECT.releases}>
+          <Icon name="download" size={16} />
+          {dict.install.cta}
+        </a>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+  .section-alt {
+    background:
+      radial-gradient(
+        50% 60% at 50% 0%,
+        rgba(77, 107, 254, 0.07),
+        transparent 70%
+      );
+  }
+
+  .install-grid {
+    display: grid;
+    gap: 40px;
+    align-items: start;
+  }
+
+  @media (min-width: 960px) {
+    .install-grid {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+      gap: 56px;
+    }
+  }
+
+  .install-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: step;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .install-step {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    position: relative;
+    padding-bottom: 28px;
+  }
+
+  .install-step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 44px;
+    bottom: 6px;
+    width: 1px;
+    background: var(--border-strong);
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    color: var(--accent-hover);
+    font-size: 16px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    z-index: 1;
+  }
+
+  .step-title {
+    font-size: 18px;
+    font-weight: 650;
+    margin-bottom: 6px;
+    padding-top: 2px;
+  }
+
+  .step-desc {
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+
+  .install-side {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .side-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .side-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 650;
+    margin-bottom: 12px;
+  }
+
+  .side-title :global(svg) {
+    color: var(--accent-hover);
+  }
+
+  .side-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .side-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .side-list :global(svg) {
+    color: var(--green);
+    flex-shrink: 0;
+  }
+
+  .dmg-name {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--accent-hover);
+    background: rgba(77, 107, 254, 0.1);
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    word-break: break-all;
+  }
+
+  .side-note {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-faint);
+    margin-top: 8px;
+  }
+
+  .side-note-strong {
+    display: flex;
+    gap: 7px;
+    align-items: flex-start;
+    color: var(--text-muted);
+  }
+
+  .side-note-strong :global(svg) {
+    color: var(--green);
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+
+  .btn-block {
+    width: 100%;
+  }
+</style>

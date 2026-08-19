@@ -1,0 +1,22 @@
+{
+  "name": "DeepSeek YukiRyou — DeepSeek Harness Desktop for macOS",
+  "short_name": "YukiRyou",
+  "description": "面向 Apple Silicon 的独立 DeepSeek Harness 桌面工作台：内置运行时、账户余额、工作区审阅、文件预览与可信更新。",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05070b",
+  "theme_color": "#05070b",
+  "icons": [
+    {
+      "src": "/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

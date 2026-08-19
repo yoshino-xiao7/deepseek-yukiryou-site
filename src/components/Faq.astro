@@ -1,0 +1,102 @@
+---
+/**
+ * FAQ：原生 details/summary 手风琴（无 JS 也可展开）
+ */
+import Icon from './Icon.astro';
+import { type Dict } from '../i18n/content';
+
+interface Props {
+  dict: Dict;
+}
+
+const { dict } = Astro.props;
+---
+
+<section class="section" id="faq">
+  <div class="container">
+    <div class="section-head section-head--center reveal">
+      <span class="eyebrow">{dict.faq.eyebrow}</span>
+      <h2 class="section-title">{dict.faq.title}</h2>
+      <p class="section-sub">{dict.faq.subtitle}</p>
+    </div>
+
+    <div class="faq-list">
+      {dict.faq.items.map((item, i) => (
+        <details class="faq-item reveal" style={`--d: ${i * 40}ms`}>
+          <summary>
+            <span class="faq-q">{item.question}</span>
+            <Icon name="chevron-down" size={18} class="faq-chevron" />
+          </summary>
+          <p class="faq-a">{item.answer}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq-list {
+    max-width: 760px;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .faq-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+  }
+
+  .faq-item[open] {
+    border-color: var(--accent-border);
+  }
+
+  .faq-item summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-item summary:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .faq-q {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .faq-chevron {
+    flex-shrink: 0;
+    color: var(--text-faint);
+    transition: transform 0.2s ease;
+  }
+
+  .faq-item[open] .faq-chevron {
+    transform: rotate(180deg);
+    color: var(--accent-hover);
+  }
+
+  .faq-a {
+    padding: 0 22px 20px;
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    margin: 0 0 0;
+    padding-top: 16px;
+  }
+</style>

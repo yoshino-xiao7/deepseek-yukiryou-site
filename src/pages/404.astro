@@ -1,0 +1,82 @@
+---
+/**
+ * 404 页面：静态站点无请求头可用，默认简体中文；
+ * 通过一小段客户端脚本按浏览器语言切换文案。
+ */
+import Base from '../layouts/Base.astro';
+import { t } from '../i18n/content';
+
+const lang = 'zh-CN';
+const dict = t[lang];
+
+const copyZh = {
+  title: '页面不存在',
+  desc: '你访问的页面不存在或已被移动。',
+  home: '返回首页',
+  homeHref: '/',
+};
+---
+
+<Base lang={lang} dict={dict}>
+  <section class="notfound">
+    <div class="container">
+      <p class="nf-code">404</p>
+      <h1 class="nf-title" data-i18n="title">{copyZh.title}</h1>
+      <p class="nf-desc" data-i18n="desc">{copyZh.desc}</p>
+      <a class="btn btn-primary" href={copyZh.homeHref} data-i18n="home">{copyZh.home}</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .notfound {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    padding-block: 80px;
+  }
+
+  .nf-code {
+    font-family: var(--font-mono);
+    font-size: 72px;
+    font-weight: 800;
+    margin: 0 0 8px;
+    background: linear-gradient(120deg, #6b84ff, #31b4ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .nf-title {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+
+  .nf-desc {
+    color: var(--text-muted);
+    margin-bottom: 28px;
+  }
+</style>
+
+<script>
+  // 按浏览器语言切换 404 文案（静态站点无法在构建时读取请求头）
+  if ((navigator.language || '').toLowerCase().startsWith('en')) {
+    const copy = {
+      title: 'Page not found',
+      desc: 'The page you are looking for does not exist or has been moved.',
+      home: 'Back to home',
+      homeHref: '/en/',
+    };
+    const title = document.querySelector('[data-i18n="title"]');
+    const desc = document.querySelector('[data-i18n="desc"]');
+    const home = document.querySelector('[data-i18n="home"]');
+    if (title) title.textContent = copy.title;
+    if (desc) desc.textContent = copy.desc;
+    if (home) {
+      home.textContent = copy.home;
+      home.setAttribute('href', copy.homeHref);
+    }
+  }
+</script>
