@@ -1,9 +1,8 @@
 ---
 /**
- * Hero 区：徽章 + 主标题 + 副标题 + 按钮 + 需求列表 + 应用窗口示意
+ * Hero 区：徽章 + 主标题 + 副标题 + 按钮 + 需求列表 + 应用截图
  */
 import Icon from './Icon.astro';
-import AppWindow from './AppWindow.astro';
 import { PROJECT, type Dict } from '../i18n/content';
 
 interface Props {
@@ -58,10 +57,20 @@ const { dict } = Astro.props;
     </div>
 
     <div class="hero-visual reveal">
-      <AppWindow dict={dict} />
+      <figure class="shot-frame">
+        <img
+          class="shot-img"
+          src="/app-screenshot.png"
+          alt={dict.hero.shotAlt}
+          width="1400"
+          height="790"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </figure>
       <p class="hero-visual-caption">
         <Icon name="spark" size={13} />
-        {dict.window.chatPlaceholder}
+        {dict.hero.shotCaption}
       </p>
     </div>
   </div>
@@ -177,6 +186,25 @@ const { dict } = Astro.props;
 
   .hero-visual {
     position: relative;
+  }
+
+  /* 真实应用截图的外框 */
+  .shot-frame {
+    margin: 0;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-strong);
+    overflow: hidden;
+    background: #fff;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.03),
+      0 24px 64px -24px rgba(0, 0, 0, 0.8),
+      0 0 80px -20px rgba(77, 107, 254, 0.28);
+  }
+
+  .shot-img {
+    width: 100%;
+    height: auto;
+    display: block;
   }
 
   .hero-visual-caption {

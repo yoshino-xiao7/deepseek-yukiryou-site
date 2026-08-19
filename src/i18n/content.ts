@@ -87,17 +87,8 @@ export interface Dict {
     disclaimer: string;
     requirements: string[];
     versionLabel: string;
-  };
-  /** 应用窗口示意图 */
-  window: {
-    tabFiles: string;
-    tabChanges: string;
-    fileTree: string;
-    gitChanges: string;
-    linesAdded: string;
-    linesRemoved: string;
-    chatPlaceholder: string;
-    balance: string;
+    shotAlt: string;
+    shotCaption: string;
   };
   /** 功能特性 */
   features: {
@@ -212,16 +203,8 @@ export const t: Record<Lang, Dict> = {
       disclaimer: '社区开源项目，非 DeepSeek 官方产品',
       requirements: ['macOS 14+', 'Apple Silicon (M1+)', 'MIT License'],
       versionLabel: '最新版本',
-    },
-    window: {
-      tabFiles: '文件',
-      tabChanges: '变更',
-      fileTree: '文件树',
-      gitChanges: '相对 HEAD 的 Git 变更',
-      linesAdded: '新增',
-      linesRemoved: '删除',
-      chatPlaceholder: 'Harness Web UI 运行于此窗口',
-      balance: '账户余额',
+      shotAlt: 'DeepSeek YukiRyou 应用截图：原生窗口中的 Harness 工作台',
+      shotCaption: 'DeepSeek YukiRyou · 原生 macOS 窗口中的 Harness 工作台',
     },
     features: {
       eyebrow: '功能特性',
@@ -482,16 +465,8 @@ export const t: Record<Lang, Dict> = {
       disclaimer: 'An open-source community project, not an official DeepSeek product',
       requirements: ['macOS 14+', 'Apple Silicon (M1+)', 'MIT License'],
       versionLabel: 'Latest release',
-    },
-    window: {
-      tabFiles: 'Files',
-      tabChanges: 'Changes',
-      fileTree: 'File tree',
-      gitChanges: 'Git changes vs HEAD',
-      linesAdded: 'added',
-      linesRemoved: 'removed',
-      chatPlaceholder: 'Harness Web UI runs in this window',
-      balance: 'Account balance',
+      shotAlt: 'Screenshot of DeepSeek YukiRyou: the Harness workbench in a native window',
+      shotCaption: 'DeepSeek YukiRyou · Harness workbench in a native macOS window',
     },
     features: {
       eyebrow: 'Features',
