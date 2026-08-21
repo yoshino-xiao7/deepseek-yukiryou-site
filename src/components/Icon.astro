@@ -161,6 +161,13 @@ const { name, size = 20, strokeWidth = 1.8, class: className } = Astro.props;
     </>
   )}
 
+  {name === 'pause' && (
+    <>
+      <rect width="4" height="16" x="6" y="4" rx="1" />
+      <rect width="4" height="16" x="14" y="4" rx="1" />
+    </>
+  )}
+
   {name === 'phone' && (
     <>
       <rect width="14" height="20" x="5" y="2" rx="2" ry="2" />

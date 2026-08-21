@@ -14,6 +14,7 @@ const { dict } = Astro.props;
 const statusIcon: Record<string, string> = {
   dev: 'spark',
   planned: 'list',
+  paused: 'pause',
 };
 ---
 
@@ -89,6 +90,12 @@ const statusIcon: Record<string, string> = {
     color: var(--text-muted);
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
+  }
+
+  .status-paused {
+    color: var(--text-faint);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed var(--border-strong);
   }
 
   .roadmap-title {

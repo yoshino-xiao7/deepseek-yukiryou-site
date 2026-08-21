@@ -52,7 +52,7 @@ export interface StepItem {
 }
 
 export interface RoadmapItem {
-  status: 'dev' | 'planned';
+  status: 'dev' | 'planned' | 'paused';
   statusLabel: string;
   title: string;
   desc: string;
@@ -341,10 +341,10 @@ export const t: Record<Lang, Dict> = {
       subtitle: '路线图表示产品方向，不承诺具体发布日期；安全模型或上游接口准备不足时，功能会继续保持不可用。',
       items: [
         {
-          status: 'dev',
-          statusLabel: '开发中',
+          status: 'paused',
+          statusLabel: '已暂停',
           title: 'DeepSeek 宠物',
-          desc: '在 Companion 宠物活动区实现稳定角色形象、待机眨眼、睡眠/唤醒与运行时“疯狂进食 token”状态。',
+          desc: '角色形象、待机眨眼、睡眠/唤醒与运行时状态动画已开发至效果展示阶段；因开发方向调整，目前暂停推进。',
         },
         {
           status: 'planned',
@@ -604,10 +604,10 @@ export const t: Record<Lang, Dict> = {
         'The roadmap signals direction, not release dates; features stay unavailable until the security model or upstream interfaces are ready.',
       items: [
         {
-          status: 'dev',
-          statusLabel: 'In development',
+          status: 'paused',
+          statusLabel: 'Paused',
           title: 'DeepSeek Pet',
-          desc: 'A stable companion character with idle blinking, sleep/wake states, and a “gobbling tokens” runtime animation — confined to its activity area.',
+          desc: 'Character art, idle blinking, sleep/wake, and runtime-state animations reached a showcase-ready stage; currently paused as the roadmap direction is re-aligned.',
         },
         {
           status: 'planned',
