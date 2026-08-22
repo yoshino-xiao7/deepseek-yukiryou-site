@@ -53,12 +53,12 @@ def main():
 
     # 品牌
     draw.text((204, 72), "DeepSeek YukiRyou", font=font(34, True), fill=TEXT)
-    draw.text((204, 118), "DeepSeek Harness Desktop for macOS", font=font(19), fill=MUTED)
+    draw.text((204, 118), "DeepSeek Harness Desktop for macOS & Windows", font=font(19), fill=MUTED)
 
     # 主标题
     draw.text((80, 236), "让 DeepSeek Harness", font=font(44, True), fill=TEXT)
-    draw.text((80, 298), "真正像一个 Mac 应用", font=font(44, True), fill=ACCENT_LIGHT)
-    draw.text((80, 370), "为 Apple Silicon 打造的独立桌面工作台 · 打开即用", font=font(21), fill=MUTED)
+    draw.text((80, 298), "真正像一个原生桌面应用", font=font(44, True), fill=ACCENT_LIGHT)
+    draw.text((80, 370), "面向 macOS 与 Windows 的独立桌面工作台 · 打开即用", font=font(21), fill=MUTED)
 
     # 按钮
     def pill(x, w, h, r, fill, outline=None):
@@ -81,7 +81,7 @@ def main():
     # 页脚说明
     draw.text(
         (80, 566),
-        "社区开源项目，非 DeepSeek 官方产品 · macOS 14+ · Apple Silicon · MIT License",
+        "社区开源项目，非 DeepSeek 官方产品 · macOS 14+ · Windows 11 · MIT License",
         font=font(16),
         fill=FAINT,
     )

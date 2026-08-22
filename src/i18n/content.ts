@@ -28,6 +28,8 @@ export const PROJECT = {
   /** 版本号：构建时由 scripts/fetch-release.mjs 从 GitHub Releases 动态获取 */
   version: release.version,
   dmgName: 'DeepSeek.YukiRyou-<version>-arm64.dmg',
+  winExeName: 'DeepSeek.YukiRyou-<version>-win32-x64-Setup.exe',
+  winZipName: 'DeepSeek.YukiRyou-win32-x64-<version>-portable.zip',
 } as const;
 
 export interface NavItem {
@@ -178,10 +180,10 @@ export const t: Record<Lang, Dict> = {
   'zh-CN': {
     htmlLang: 'zh-CN',
     meta: {
-      title: 'DeepSeek YukiRyou — 让 DeepSeek Harness 真正像一个 Mac 应用',
+      title: 'DeepSeek YukiRyou — 让 DeepSeek Harness 真正像一个原生桌面应用',
       description:
-        '面向 Apple Silicon 的独立 DeepSeek Harness 桌面工作台：内置运行时、账户余额、工作区审阅、文件预览与可信更新，打开即可工作。macOS 14+。',
-      ogTitle: 'DeepSeek YukiRyou — DeepSeek Harness Desktop for macOS',
+        '面向 macOS 与 Windows 的独立 DeepSeek Harness 桌面工作台：内置运行时、账户余额、工作区审阅、文件预览、社区插件市场与可信更新，打开即可工作。macOS 14+ 与 Windows 11。',
+      ogTitle: 'DeepSeek YukiRyou — DeepSeek Harness Desktop for macOS & Windows',
     },
     nav: {
       features: '功能',
@@ -195,15 +197,15 @@ export const t: Record<Lang, Dict> = {
       viewOnGitHub: '在 GitHub 上查看',
     },
     hero: {
-      badge: 'Apple Silicon Beta',
+      badge: 'macOS & Windows Beta',
       title: '让 DeepSeek Harness',
-      titleAccent: '真正像一个 Mac 应用',
+      titleAccent: '真正像一个原生桌面应用',
       subtitle:
-        '为 Apple Silicon 打造的独立桌面工作台：内置运行时、账户余额、工作区审阅、文件预览与可信更新，打开即可工作。',
+        '面向 macOS 与 Windows 的独立桌面工作台：内置运行时、账户余额、工作区审阅、文件预览、社区插件市场与可信更新，打开即可工作。',
       ctaPrimary: '下载应用',
       ctaSecondary: '在 GitHub 上查看',
       disclaimer: '社区开源项目，非 DeepSeek 官方产品',
-      requirements: ['macOS 14+', 'Apple Silicon (M1+)', 'MIT License'],
+      requirements: ['macOS 14+（Apple Silicon）', 'Windows 11 x64（Beta）', 'MIT License'],
       versionLabel: '最新版本',
       shotAlt: 'DeepSeek YukiRyou 应用截图：原生窗口中的 Harness 工作台',
       shotCaption: 'DeepSeek YukiRyou · 原生 macOS 窗口中的 Harness 工作台',
@@ -222,7 +224,7 @@ export const t: Record<Lang, Dict> = {
         {
           icon: 'mac',
           title: '原生体验',
-          desc: '原生交通灯、可拖动顶栏，浅色、深色与跟随系统主题同步生效，侧栏动画与 Harness 视觉状态融为一体。',
+          desc: '原生交通灯、可拖动顶栏，侧栏窄窗口覆盖、宽窗口停靠；浅色、深色与跟随系统主题同步生效，与 Harness 视觉融为一体。',
         },
         {
           icon: 'wallet',
@@ -232,7 +234,7 @@ export const t: Record<Lang, Dict> = {
         {
           icon: 'git',
           title: '工作区审阅',
-          desc: '可收起右栏提供当前工作区文件树、相对 HEAD 的 Git 变更、增删行统计与只读 diff。',
+          desc: '文件树、相对 HEAD 的 Git 变更、增删行统计与只读 diff；支持搜索、筛选、顺序审阅与预览内查找，文件与代码行可拖入对话。',
         },
         {
           icon: 'file',
@@ -253,6 +255,26 @@ export const t: Record<Lang, Dict> = {
           icon: 'shield',
           title: '可信更新',
           desc: 'Developer ID 签名、Apple 公证、SHA-256 校验与应用内检查更新，下载完成后由你确认重启安装。',
+        },
+        {
+          icon: 'plugin',
+          title: '社区插件市场',
+          desc: '完整目录索引、搜索、分类、分页与来源管理；安装前安全预检，明确目录来源与本机状态。',
+        },
+        {
+          icon: 'check',
+          title: '受管插件生命周期',
+          desc: '安装、更新、重装、启用、停用、回滚与安全卸载；失败自动恢复旧版本，并阻断已知坏版本。',
+        },
+        {
+          icon: 'windows',
+          title: 'Windows 11 支持',
+          desc: '新增平台化运行时、ConPTY 与 Squirrel 安装包；同一版本在 macOS 与 Windows 双平台交付。',
+        },
+        {
+          icon: 'file',
+          title: 'Windows 便携版',
+          desc: '便携 ZIP 解压即可直接运行，免安装；与安装版来自同一提交、携带同一固定运行时。',
         },
       ],
     },
@@ -283,10 +305,11 @@ export const t: Record<Lang, Dict> = {
         header: ['对比项', '官方 Web UI', '浏览器快捷方式', 'DeepSeek YukiRyou'],
         rows: [
           ['运行环境准备', '需要 Node、pnpm 与启动命令', '需要先自行启动服务', '应用内置，打开即用'],
-          ['桌面能力', '无', '无', '账户余额、文件树、Git 变更、diff 与预览'],
+          ['桌面能力', '无', '无', '账户余额、文件树、Git 变更、diff、预览与插件市场'],
           ['进程管理', '手动启动与清理', '手动', '单实例、自动恢复、退出回收'],
           ['更新方式', '手动', '手动', '应用内检查，签名与公证校验'],
           ['离线可复现', '依赖本机环境', '依赖本机环境', '内置固定版本运行时'],
+          ['平台支持', '浏览器即可', '浏览器即可', 'macOS 14+（Apple Silicon）与 Windows 11（Beta）'],
         ],
         highlight: 3,
       },
@@ -312,27 +335,28 @@ export const t: Record<Lang, Dict> = {
     install: {
       eyebrow: '下载与安装',
       title: '三步开始工作',
-      subtitle: '前往 GitHub Releases 下载适用于 Apple Silicon 的 DMG，拖入“应用程序”即可。',
+      subtitle: '从 GitHub Releases 下载对应平台的安装包：macOS 拖入“应用程序”，Windows 运行安装程序（或使用便携版）。',
       steps: [
         {
-          title: '下载 DMG',
-          desc: '从 GitHub Releases 下载 DeepSeek.YukiRyou-<version>-arm64.dmg',
+          title: '下载安装包',
+          desc: 'macOS 下载 DMG；Windows 下载 Setup.exe 或便携版 ZIP，均来自同一个 Release',
         },
         {
-          title: '拖入应用程序',
-          desc: '打开 DMG，将 DeepSeek YukiRyou 拖入“应用程序”目录',
+          title: '安装到系统',
+          desc: 'macOS 拖入“应用程序”目录；Windows 运行安装程序，便携版解压即可直接运行',
         },
         {
           title: '启动并配置',
-          desc: '从 Launchpad 启动，在 Harness 界面完成所需的服务配置',
+          desc: '从 Launchpad 或开始菜单启动，在 Harness 界面完成所需的服务配置',
         },
       ],
       requirementsTitle: '系统要求',
-      requirements: ['Apple Silicon Mac（M1 或更新芯片）', 'macOS 14 或更高版本'],
+      requirements: ['macOS 14+（Apple Silicon）', 'Windows 11 x64（Beta）'],
       fileNameTitle: '安装包命名',
-      fileNameDesc: '每个正式版本同时提供 SHA-256 校验文件，请只从 GitHub Releases 下载。',
+      fileNameDesc:
+        '每个 Release 同时提供 macOS 与 Windows 产物（DMG、Setup.exe、便携 ZIP）并附带 SHA-256 校验文件，请只从 GitHub Releases 下载。',
       shaNote:
-        '应用与更新包均使用 Developer ID 签名并经过 Apple 公证；不要从非可信来源下载安装包。',
+        'macOS 应用与更新包使用 Developer ID 签名并经过 Apple 公证；Windows 当前为未签名 Beta，安装前请核对 SHA-256。',
       cta: '前往 Releases 下载',
     },
     roadmap: {
@@ -355,8 +379,8 @@ export const t: Record<Lang, Dict> = {
         {
           status: 'planned',
           statusLabel: '规划中',
-          title: '插件市场',
-          desc: '提供插件发现、详情、安装、更新、移除与权限说明，在设计验证后再开放安装能力。',
+          title: 'Windows 质量门与自动更新闭环',
+          desc: '真实跨版本升级、应用内自动更新闭环与独立 Windows 11 客户端验收，作为 Windows 后续质量门。',
         },
       ],
       note: '产品方向不代表承诺：不会通过不稳定的 DOM 注入或降低系统安全要求来提前上线功能。',
@@ -386,6 +410,11 @@ export const t: Record<Lang, Dict> = {
           title: '可信发布链',
           desc: '候选包经过 Developer ID 签名、异机安装、真实应用稳定性测试、Apple 公证与最终复验后才公开。',
         },
+        {
+          icon: 'plugin',
+          title: '可核验的插件来源',
+          desc: '社区目录只提供发现能力，不代表官方认可；安装前核验目录与包的身份、依赖图、SHA-512 与官方 tarball，不降低安全要求。',
+        },
       ],
     },
     faq: {
@@ -396,11 +425,22 @@ export const t: Record<Lang, Dict> = {
         {
           question: '这是 DeepSeek 官方客户端吗？',
           answer:
-            '不是。这是由社区独立开发的 macOS 桌面项目，与 DeepSeek 官方没有隶属或背书关系。',
+            '不是。这是由社区独立开发的 macOS / Windows 桌面项目，与 DeepSeek 官方没有隶属或背书关系。',
         },
         {
-          question: '支持 Intel Mac 或 Windows 吗？',
-          answer: '当前只交付 Apple Silicon arm64 版本。Intel、Windows 和 Linux 不在当前发布范围内。',
+          question: '支持哪些平台？',
+          answer:
+            'macOS 公开版面向 Apple Silicon（macOS 14 或更高），经 Developer ID 签名与 Apple 公证；Windows 11 x64 提供 Beta 产物。Intel Mac 与 Linux 暂不支持。',
+        },
+        {
+          question: '为什么 Windows 版本会显示 SmartScreen 警告？',
+          answer:
+            'Windows 产物当前为未签名 Beta，首次运行可能显示 SmartScreen 提示。请只从 GitHub Releases 下载，并核对随附的 SHA256SUMS-Windows.txt。',
+        },
+        {
+          question: '插件市场安全吗？',
+          answer:
+            '社区目录只提供发现能力，不表示官方认可或安全审核。安装前会核验目录来源、npm 精确身份、依赖图、SHA-512 与官方 tarball 等；插件安装后与 Harness 共享本机用户权限，请只安装你信任的代码。',
         },
         {
           question: '为什么安装包比较大？',
@@ -410,7 +450,7 @@ export const t: Record<Lang, Dict> = {
         {
           question: '遇到启动问题怎么办？',
           answer:
-            '先使用应用菜单导出诊断包，再到 GitHub Issues 描述 macOS 版本、应用版本与复现步骤。提交前请确认附件中没有不希望公开的信息。',
+            '先使用应用菜单导出诊断包，再到 GitHub Issues 描述系统版本、应用版本与复现步骤。提交前请确认附件中没有不希望公开的信息。',
         },
         {
           question: '如何更新应用？',
@@ -422,13 +462,13 @@ export const t: Record<Lang, Dict> = {
     cta: {
       title: '开始使用 DeepSeek YukiRyou',
       subtitle:
-        '下载应用，让 DeepSeek Harness 像真正的 Mac 应用一样工作。如果这个项目对你有帮助，欢迎点一个 Star。',
+        '下载应用，让 DeepSeek Harness 像原生桌面应用一样工作。如果这个项目对你有帮助，欢迎点一个 Star。',
       download: '下载应用',
       star: '⭐ Star 支持',
       feedback: '反馈问题',
     },
     footer: {
-      tagline: '面向 Apple Silicon 的 DeepSeek Harness 桌面工作台',
+      tagline: '面向 macOS 与 Windows 的 DeepSeek Harness 桌面工作台',
       disclaimer:
         '本项目是由社区独立开发的开源项目，与 DeepSeek 官方没有隶属或背书关系。DeepSeek 与 DeepSeek Harness 名称归其各自权利人所有。',
       license: '基于 MIT License 开源',
@@ -440,10 +480,10 @@ export const t: Record<Lang, Dict> = {
   en: {
     htmlLang: 'en',
     meta: {
-      title: 'DeepSeek YukiRyou — Make DeepSeek Harness Feel Like a Real Mac App',
+      title: 'DeepSeek YukiRyou — Make DeepSeek Harness Feel Like a Native Desktop App',
       description:
-        'A standalone DeepSeek Harness desktop workbench for Apple Silicon: bundled runtime, account balance, workspace review, file preview, and trusted updates. Open and run. macOS 14+.',
-      ogTitle: 'DeepSeek YukiRyou — DeepSeek Harness Desktop for macOS',
+        'A standalone DeepSeek Harness desktop workbench for macOS and Windows: bundled runtime, account balance, workspace review, file preview, community plugin marketplace, and trusted updates. Open and run. macOS 14+ and Windows 11.',
+      ogTitle: 'DeepSeek YukiRyou — DeepSeek Harness Desktop for macOS & Windows',
     },
     nav: {
       features: 'Features',
@@ -457,22 +497,22 @@ export const t: Record<Lang, Dict> = {
       viewOnGitHub: 'View on GitHub',
     },
     hero: {
-      badge: 'Apple Silicon Beta',
+      badge: 'macOS & Windows Beta',
       title: 'Make DeepSeek Harness',
-      titleAccent: 'feel like a real Mac app',
+      titleAccent: 'feel like a native desktop app',
       subtitle:
-        'A standalone desktop workbench for Apple Silicon: bundled runtime, account balance, workspace review, file preview, and trusted updates. Open and run.',
+        'A standalone desktop workbench for macOS and Windows: bundled runtime, account balance, workspace review, file preview, plugin marketplace, and trusted updates. Open and run.',
       ctaPrimary: 'Download App',
       ctaSecondary: 'View on GitHub',
       disclaimer: 'An open-source community project, not an official DeepSeek product',
-      requirements: ['macOS 14+', 'Apple Silicon (M1+)', 'MIT License'],
+      requirements: ['macOS 14+ (Apple Silicon)', 'Windows 11 x64 (Beta)', 'MIT License'],
       versionLabel: 'Latest release',
       shotAlt: 'Screenshot of DeepSeek YukiRyou: the Harness workbench in a native window',
       shotCaption: 'DeepSeek YukiRyou · Harness workbench in a native macOS window',
     },
     features: {
       eyebrow: 'Features',
-      title: 'Put Harness into an installable Mac app',
+      title: 'Put Harness into an installable desktop app',
       subtitle:
         'Not a rewrite of Harness, and it never changes how Agents work — it delivers Harness to your desktop stably, securely, and recoverably.',
       items: [
@@ -484,7 +524,7 @@ export const t: Record<Lang, Dict> = {
         {
           icon: 'mac',
           title: 'Native experience',
-          desc: 'Native traffic lights and a draggable title bar. Light, dark, and system themes stay in sync with Harness visuals.',
+          desc: 'Native traffic lights, a draggable title bar, and a sidebar that overlays in narrow windows and docks when wide. Light, dark, and system themes stay in sync.',
         },
         {
           icon: 'wallet',
@@ -494,7 +534,7 @@ export const t: Record<Lang, Dict> = {
         {
           icon: 'git',
           title: 'Workspace review',
-          desc: 'A collapsible companion panel with the file tree, Git changes vs HEAD, added/removed line stats, and read-only diff.',
+          desc: 'File tree, Git changes vs HEAD, line stats, and read-only diff — with search, filtering, ordered review, in-preview find, and drag files or lines into chat.',
         },
         {
           icon: 'file',
@@ -515,6 +555,26 @@ export const t: Record<Lang, Dict> = {
           icon: 'shield',
           title: 'Trusted updates',
           desc: 'Developer ID signed, Apple notarized, SHA-256 verified, with in-app update checks. You confirm before restarting to install.',
+        },
+        {
+          icon: 'plugin',
+          title: 'Community plugin marketplace',
+          desc: 'Full catalog indexing, search, categories, paging, and source management — with a security pre-check before install.',
+        },
+        {
+          icon: 'check',
+          title: 'Managed plugin lifecycle',
+          desc: 'Install, update, reinstall, enable, disable, rollback, and safe removal. Failures auto-restore the previous version and block known-bad builds.',
+        },
+        {
+          icon: 'windows',
+          title: 'Windows 11 support',
+          desc: 'Platform runtime, ConPTY, and Squirrel installer — the same release ships for both macOS and Windows.',
+        },
+        {
+          icon: 'file',
+          title: 'Windows portable build',
+          desc: 'Unzip the portable ZIP and run directly — no install. Built from the same commit with the same pinned runtime.',
         },
       ],
     },
@@ -574,27 +634,29 @@ export const t: Record<Lang, Dict> = {
     install: {
       eyebrow: 'Download & install',
       title: 'Three steps to start',
-      subtitle: 'Grab the Apple Silicon DMG from GitHub Releases and drag it into Applications.',
+      subtitle:
+        'Grab the installer for your platform from GitHub Releases: drag the DMG into Applications on macOS, or run the installer (or portable build) on Windows.',
       steps: [
         {
-          title: 'Download the DMG',
-          desc: 'Download DeepSeek.YukiRyou-<version>-arm64.dmg from GitHub Releases',
+          title: 'Download the installer',
+          desc: 'macOS: download the DMG. Windows: download Setup.exe or the portable ZIP — all from the same Release',
         },
         {
-          title: 'Drag into Applications',
-          desc: 'Open the DMG and drag DeepSeek YukiRyou into your Applications folder',
+          title: 'Install',
+          desc: 'macOS: drag DeepSeek YukiRyou into Applications. Windows: run the installer, or unzip the portable build and run directly',
         },
         {
           title: 'Launch and configure',
-          desc: 'Launch from Launchpad, then configure services in the Harness UI',
+          desc: 'Launch from Launchpad or the Start menu, then configure services in the Harness UI',
         },
       ],
       requirementsTitle: 'System requirements',
-      requirements: ['Apple Silicon Mac (M1 or newer)', 'macOS 14 or later'],
+      requirements: ['macOS 14+ (Apple Silicon)', 'Windows 11 x64 (Beta)'],
       fileNameTitle: 'Package naming',
-      fileNameDesc: 'Every release ships SHA-256 checksums. Only download from GitHub Releases.',
+      fileNameDesc:
+        'Every Release ships macOS and Windows artifacts (DMG, Setup.exe, portable ZIP) with SHA-256 checksums. Only download from GitHub Releases.',
       shaNote:
-        'The app and update packages are Developer ID signed and Apple notarized. Never install from untrusted sources.',
+        'The macOS app and update packages are Developer ID signed and Apple notarized; Windows is an unsigned Beta — verify SHA-256 before installing.',
       cta: 'Go to Releases',
     },
     roadmap: {
@@ -618,8 +680,8 @@ export const t: Record<Lang, Dict> = {
         {
           status: 'planned',
           statusLabel: 'Planned',
-          title: 'Plugin marketplace',
-          desc: 'Plugin discovery, details, install, update, removal, and permission disclosure — after design, signature, and compatibility validation.',
+          title: 'Windows quality gates & auto-update loop',
+          desc: 'Real cross-version upgrades, an in-app auto-update loop, and standalone Windows 11 client acceptance as the next Windows quality gates.',
         },
       ],
       note: 'Direction, not promises: features are never shipped early via unstable DOM injection or by lowering security requirements.',
@@ -649,6 +711,11 @@ export const t: Record<Lang, Dict> = {
           title: 'Trusted supply chain',
           desc: 'Candidates ship only after Developer ID signing, clean-machine installs, real-world stability testing, Apple notarization, and final verification.',
         },
+        {
+          icon: 'plugin',
+          title: 'Verifiable plugin sources',
+          desc: 'The community catalog is discovery only, not an endorsement; identity, dependency graph, SHA-512, and official tarballs are verified before install, without lowering security requirements.',
+        },
       ],
     },
     faq: {
@@ -659,12 +726,22 @@ export const t: Record<Lang, Dict> = {
         {
           question: 'Is this an official DeepSeek client?',
           answer:
-            'No. This is an independently developed open-source macOS project with no affiliation or endorsement from DeepSeek.',
+            'No. This is an independently developed open-source macOS/Windows project with no affiliation or endorsement from DeepSeek.',
         },
         {
-          question: 'Does it support Intel Macs or Windows?',
+          question: 'Which platforms are supported?',
           answer:
-            'Only Apple Silicon arm64 builds are shipped today. Intel, Windows, and Linux are out of scope for now.',
+            'The macOS release targets Apple Silicon (macOS 14 or later) with Developer ID signing and Apple notarization; Windows 11 x64 ships Beta builds. Intel Macs and Linux are not supported yet.',
+        },
+        {
+          question: 'Why does the Windows build show a SmartScreen warning?',
+          answer:
+            'Windows builds are unsigned Betas, so SmartScreen may warn on first run. Only download from GitHub Releases and verify against the included SHA256SUMS-Windows.txt.',
+        },
+        {
+          question: 'Is the plugin marketplace safe?',
+          answer:
+            'The community catalog is discovery only — it is not an endorsement or a security review. Before install, the app verifies catalog source, npm identity, dependency graph, SHA-512, and official tarballs; plugins share your local user permissions with Harness, so only install code you trust.',
         },
         {
           question: 'Why is the installer so large?',
@@ -674,7 +751,7 @@ export const t: Record<Lang, Dict> = {
         {
           question: 'What if the app fails to start?',
           answer:
-            'Export a diagnostics package from the app menu, then open a GitHub Issue with your macOS version, app version, and steps to reproduce. Review the attachment for anything you do not want public.',
+            'Export a diagnostics package from the app menu, then open a GitHub Issue with your OS version, app version, and steps to reproduce. Review the attachment for anything you do not want public.',
         },
         {
           question: 'How do updates work?',
@@ -686,13 +763,13 @@ export const t: Record<Lang, Dict> = {
     cta: {
       title: 'Get started with DeepSeek YukiRyou',
       subtitle:
-        'Download the app and let DeepSeek Harness work like a real Mac app. If this project helps you, give it a star.',
+        'Download the app and let DeepSeek Harness work like a native desktop app. If this project helps you, give it a star.',
       download: 'Download App',
       star: '⭐ Star us',
       feedback: 'Report an issue',
     },
     footer: {
-      tagline: 'A DeepSeek Harness desktop workbench for Apple Silicon',
+      tagline: 'A DeepSeek Harness desktop workbench for macOS and Windows',
       disclaimer:
         'An open-source community project with no affiliation or endorsement from DeepSeek. DeepSeek and DeepSeek Harness names belong to their respective owners.',
       license: 'Open source under the MIT License',
