@@ -4,7 +4,7 @@
  */
 import Icon from './Icon.astro';
 import Download from './Download.astro';
-import { PROJECT, type Dict } from '../i18n/content';
+import { PROJECT, DOWNLOADS, type Dict } from '../i18n/content';
 
 interface Props {
   dict: Dict;
@@ -64,7 +64,7 @@ const { dict } = Astro.props;
             data-dl-file
             data-platform="darwin-arm64"
             data-kind="primary"
-          >{PROJECT.dmgName}</code>
+          >{DOWNLOADS.platforms?.['darwin-arm64']?.primary?.name ?? PROJECT.dmgName}</code>
           <p class="side-label">
             <Icon name="windows" size={12} />
             Windows
@@ -74,7 +74,7 @@ const { dict } = Astro.props;
             data-dl-file
             data-platform="win32-x64"
             data-kind="primary"
-          >{PROJECT.winExeName}</code>
+          >{DOWNLOADS.platforms?.['win32-x64']?.primary?.name ?? PROJECT.winExeName}</code>
           <p class="side-note">{dict.install.fileNameDesc}</p>
           <p class="side-note side-note-strong">
             <Icon name="shield" size={13} />

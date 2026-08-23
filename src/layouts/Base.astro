@@ -5,7 +5,7 @@
  */
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { PROJECT, type Dict, type Lang } from '../i18n/content';
+import { PROJECT, DOWNLOADS, type Dict, type Lang } from '../i18n/content';
 import '../styles/global.css';
 
 interface Props {
@@ -109,6 +109,9 @@ const allJsonLd = [websiteJsonLd, softwareJsonLd, ...jsonLd];
 
     <!-- 结构化数据 -->
     {allJsonLd.map((item) => <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />)}
+
+    <!-- 下载配置：构建时生成，随页面内联，首屏即为正确直链（无需跨域 fetch） -->
+    <script is:inline type="application/json" id="downloads-config" set:html={JSON.stringify(DOWNLOADS)}></script>
   </head>
   <body>
     <div class="page-glow" aria-hidden="true"></div>

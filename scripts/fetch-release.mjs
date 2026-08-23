@@ -25,8 +25,10 @@ function readExisting() {
       const data = JSON.parse(readFileSync(outFile, 'utf8'));
       if (data && data.version) return data;
     }
-  } catch {
-    /* 忽略损坏文件 */
+  } catch (err) {
+    console.warn(
+      `[fetch-release] 读取已有 release.json 失败（${err instanceof Error ? err.message : String(err)}），使用内置默认版本`
+    );
   }
   return DEFAULT;
 }

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.3-beta.3",
+  "source": "oss",
+  "platforms": {
+    "darwin-arm64": {
+      "primary": {
+        "name": "DeepSeek.YukiRyou-0.2.3-beta.3-arm64.dmg",
+        "url": "https://download-cn.suzuki.ink/releases/v0.2.3-beta.3/DeepSeek.YukiRyou-0.2.3-beta.3-arm64.dmg",
+        "size": 419391041,
+        "sha256": "3d3551c5136c420a82273844bf584c7b2faca89c847220104218518e86d31525"
+      },
+      "alternative": {
+        "name": "DeepSeek.YukiRyou-darwin-arm64-0.2.3-beta.3.zip",
+        "url": "https://download-cn.suzuki.ink/releases/v0.2.3-beta.3/DeepSeek.YukiRyou-darwin-arm64-0.2.3-beta.3.zip",
+        "size": 235832236,
+        "sha256": "f061947952f55073577f27cd34a3d4c453723e9855672d857f8c4a9883491c2b"
+      }
+    },
+    "win32-x64": {
+      "primary": {
+        "name": "DeepSeek.YukiRyou-0.2.3-beta.3-win32-x64-Setup.exe",
+        "url": "https://download-cn.suzuki.ink/releases/v0.2.3-beta.3/DeepSeek.YukiRyou-0.2.3-beta.3-win32-x64-Setup.exe",
+        "size": 181548060,
+        "sha256": "60341361f25c809a4ab996493b3c17cf5a8d99298151650966863ed5ecd8555a"
+      },
+      "alternative": {
+        "name": "DeepSeek.YukiRyou-win32-x64-0.2.3-beta.3-portable.zip",
+        "url": "https://download-cn.suzuki.ink/releases/v0.2.3-beta.3/DeepSeek.YukiRyou-win32-x64-0.2.3-beta.3-portable.zip",
+        "size": 252502632,
+        "sha256": "64ba22c287a4eabcfea10f171c1ec80d562caffde1691f275bd29b629836c4f4"
+      }
+    }
+  }
+}

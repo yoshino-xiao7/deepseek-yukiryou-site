@@ -4,7 +4,7 @@
  */
 import Icon from './Icon.astro';
 import Download from './Download.astro';
-import { PROJECT, type Dict } from '../i18n/content';
+import { PROJECT, DOWNLOADS, type Dict } from '../i18n/content';
 
 interface Props {
   dict: Dict;
@@ -20,7 +20,7 @@ const { dict } = Astro.props;
         <span class="hero-badge-dot"></span>
         {dict.hero.badge}
         <span class="hero-badge-sep"></span>
-        {dict.hero.versionLabel} <span data-dl-version>{PROJECT.version}</span>
+        {dict.hero.versionLabel} <span data-dl-version>{DOWNLOADS.version ?? PROJECT.version}</span>
       </span>
 
       <h1 class="hero-title">

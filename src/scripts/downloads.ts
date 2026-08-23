@@ -1,14 +1,18 @@
 /**
  * 下载中心客户端逻辑（全站共享，随 Base 布局加载）。
  *
- * 1. 读取国内 OSS 清单 latest.json（CORS 已对本站放行）
- * 2. 成功：绑定四个直链（DMG / macOS ZIP / Windows Setup / Windows 便携版），
- *    按系统切换主按钮标签与链接，并刷新版本号徽章与安装区文件名
- * 3. 失败（国内源不可用 / 海外被 ESA 拦截）：所有下载入口统一跳转 GitHub 最新发行页
+ * 架构：下载配置在构建时由 scripts/fetch-downloads.mjs 生成，随页面 SSR 内联
+ * （#downloads-config），四个下载链接在首屏 HTML 中即为正确直链——
+ * 不依赖任何浏览器跨域 fetch。
  *
- * 无 JS / 脚本失败时，所有链接保持 SSR 默认的 GitHub 最新发行页，行为一致。
+ * 本脚本只做三件事：
+ * 1. 读取内联配置；缺失时回退同域静态 /downloads.json（无跨域问题）
+ * 2. 按系统切换主按钮标签与链接（纯本地逻辑）
+ * 3. 处理“其他下载”下拉菜单交互
+ *
+ * 失败处理（绝不静默）：每一步失败都记录具体原因；
+ * 配置彻底不可用时，所有下载入口统一指向 GitHub 最新发行页并记录回退原因。
  */
-const MANIFEST_URL = 'https://download-cn.suzuki.ink/downloads/latest.json';
 const GITHUB_LATEST =
   'https://github.com/yoshino-xiao7/deepseek-harness-desktop-yukiryou/releases/latest';
 
@@ -19,8 +23,10 @@ interface Artifact {
   sha256?: string;
 }
 
-interface Manifest {
-  version?: string;
+interface DownloadConfig {
+  schemaVersion?: number;
+  version?: string | null;
+  source?: string;
   platforms?: Record<string, { primary?: Artifact; alternative?: Artifact }>;
 }
 
@@ -49,43 +55,83 @@ function formatSize(bytes?: number): string {
   return `${i === 0 || n >= 10 ? Math.round(n) : n.toFixed(1)} ${units[i]}`;
 }
 
-async function main() {
-  let manifest: Manifest | null = null;
-  try {
-    const res = await fetch(MANIFEST_URL);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    manifest = (await res.json()) as Manifest;
-  } catch {
-    manifest = null;
+function isConfig(value: unknown): value is DownloadConfig {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    'platforms' in (value as object) &&
+    typeof (value as DownloadConfig).platforms === 'object'
+  );
+}
+
+/** 读取下载配置：优先内联 JSON（构建时生成），缺失时回退同域 /downloads.json */
+async function loadConfig(): Promise<DownloadConfig | null> {
+  // 1) 页面内联配置（发布时生成，主路径，零网络请求）
+  const inlineEl = document.getElementById('downloads-config');
+  if (inlineEl) {
+    try {
+      const parsed = JSON.parse(inlineEl.textContent ?? '');
+      if (isConfig(parsed)) return parsed;
+      console.error('[downloads] 内联下载配置结构异常，改用同域 /downloads.json');
+    } catch (err) {
+      console.error(
+        `[downloads] 解析内联下载配置失败（${err instanceof Error ? err.message : String(err)}），改用同域 /downloads.json`
+      );
+    }
   }
 
+  // 2) 同域静态配置（发布时生成，随 dist 一起部署，无跨域）
+  try {
+    const res = await fetch('/downloads.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const parsed: unknown = await res.json();
+    if (isConfig(parsed)) return parsed;
+    console.error('[downloads] 同域 /downloads.json 结构异常，将回退 GitHub 最新发行页');
+  } catch (err) {
+    console.error(
+      `[downloads] 读取同域 /downloads.json 失败（${err instanceof Error ? err.message : String(err)}），将回退 GitHub 最新发行页`
+    );
+  }
+  return null;
+}
+
+async function main() {
+  const config = await loadConfig();
   const os = detectOS();
+
+  const platforms = config?.platforms;
   const ready =
-    !!manifest?.platforms?.['darwin-arm64'] && !!manifest?.platforms?.['win32-x64'];
+    !!platforms?.['darwin-arm64'] && !!platforms?.['win32-x64'];
+
+  if (!config) {
+    console.warn('[downloads] 下载配置不可用：所有下载入口回退 GitHub 最新发行页');
+  } else if (config.source === 'github') {
+    console.warn('[downloads] 下载配置来源为 github（构建时清单获取失败）：四个直链不可用，使用 GitHub 最新发行页');
+  }
 
   const urlFor = (platform: string, kind: Kind): string =>
-    manifest?.platforms?.[platform]?.[kind]?.url || GITHUB_LATEST;
+    platforms?.[platform]?.[kind]?.url || GITHUB_LATEST;
   const nameFor = (platform: string, kind: Kind): string | undefined =>
-    manifest?.platforms?.[platform]?.[kind]?.name;
+    platforms?.[platform]?.[kind]?.name;
   const sizeFor = (platform: string, kind: Kind): number | undefined =>
-    manifest?.platforms?.[platform]?.[kind]?.size;
+    platforms?.[platform]?.[kind]?.size;
 
-  // 版本号徽章（data-dl-version）
-  if (manifest?.version) {
+  // 版本号徽章：内联/同域配置可能比 SSR 值更新（旧缓存页面场景）
+  if (config?.version) {
     document.querySelectorAll<HTMLElement>('[data-dl-version]').forEach((el) => {
-      el.textContent = manifest!.version!;
+      el.textContent = config.version!;
     });
   }
 
-  // 主下载按钮：按系统切换标签与链接
+  // 主下载按钮：按系统切换标签与链接（仅本地逻辑，无网络请求）
   document.querySelectorAll<HTMLAnchorElement>('[data-dl-main]').forEach((btn) => {
     const label = btn.querySelector<HTMLElement>('[data-dl-label]');
     if (ready && os && label) {
       label.textContent =
         os === 'mac' ? (label.dataset.labelMac ?? '') : (label.dataset.labelWin ?? '');
       btn.href = urlFor(os === 'mac' ? 'darwin-arm64' : 'win32-x64', 'primary');
-    } else {
-      // 清单不可用 / 系统未知：统一跳 GitHub 最新发行页
+    } else if (!ready) {
+      // 配置不可用：统一指向 GitHub 最新发行页（原因已在上面记录）
       btn.href = GITHUB_LATEST;
     }
   });
@@ -103,12 +149,12 @@ async function main() {
         meta.textContent = [name, size].filter(Boolean).join(' · ');
         meta.hidden = !meta.textContent;
       }
-    } else {
+    } else if (!ready) {
       link.href = GITHUB_LATEST;
     }
   });
 
-  // 安装区文件名（data-dl-file，替换 <version> 占位符）
+  // 安装区文件名（data-dl-file）
   document.querySelectorAll<HTMLElement>('[data-dl-file]').forEach((el) => {
     const platform = el.dataset.platform ?? '';
     const kind = el.dataset.kind;

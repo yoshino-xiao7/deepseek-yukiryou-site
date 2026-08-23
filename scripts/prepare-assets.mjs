@@ -75,8 +75,9 @@ function tryPillow() {
       run(py, ['-c', pyRunner], { env: { ...pyEnv, OG_SCRIPT: pyScript } });
       console.log('✔ og-cover.png 生成完成（Pillow）');
       return true;
-    } catch {
-      /* 尝试下一个解释器 */
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      console.debug(`[assets] ${py} 不可用（${reason}），尝试下一个解释器`);
     }
   }
   return false;

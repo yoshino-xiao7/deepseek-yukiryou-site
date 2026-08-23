@@ -7,7 +7,7 @@
   "description": "DeepSeek YukiRyou 官网 —— DeepSeek Harness Desktop for macOS 的官方宣传页",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/fetch-release.mjs && astro build",
+    "build": "node scripts/fetch-release.mjs && node scripts/fetch-downloads.mjs && astro build",
     "preview": "astro preview",
     "check": "astro check",
     "assets": "node scripts/prepare-assets.mjs"

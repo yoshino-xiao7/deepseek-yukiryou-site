@@ -3,11 +3,18 @@
  * 统一下载组件：主按钮（按系统显示“下载 macOS / 下载 Windows”）
  * + “其他下载”下拉（DMG / macOS ZIP / Windows Setup / Windows 便携版）。
  *
- * 链接由 src/scripts/downloads.ts 在运行时从国内 OSS 清单绑定；
- * SSR 默认指向 GitHub 最新发行页，作为无 JS / 清单不可用时的回退。
+ * 链接在构建时由 scripts/fetch-downloads.mjs 生成的下载配置（DOWNLOADS）
+ * 直接 SSR 渲染，首屏即为正确直链，不依赖浏览器跨域 fetch。
+ * 构建时清单不可用时（source: github），四个链接统一指向 GitHub 最新发行页。
+ * 运行时 downloads.ts 只负责按系统切换主按钮与下拉交互，不做网络请求。
  */
 import Icon from './Icon.astro';
-import { PROJECT, type Dict } from '../i18n/content';
+import {
+  PROJECT,
+  DOWNLOADS,
+  type DownloadArtifact,
+  type Dict,
+} from '../i18n/content';
 
 interface Props {
   dict: Dict;
@@ -26,12 +33,41 @@ const sizeClass =
 
 const iconSize = variant === 'lg' ? 17 : 15;
 const menuClass = variant === 'nav' ? ' dl-menu--right' : '';
+
+/** 构建时下载配置中的四个直链；缺失时回退 GitHub 最新发行页 */
+const macPrimary = DOWNLOADS.platforms?.['darwin-arm64']?.primary;
+const macAlternative = DOWNLOADS.platforms?.['darwin-arm64']?.alternative;
+const winPrimary = DOWNLOADS.platforms?.['win32-x64']?.primary;
+const winAlternative = DOWNLOADS.platforms?.['win32-x64']?.alternative;
+
+const hrefOf = (a?: DownloadArtifact): string => a?.url || PROJECT.latest;
+
+function formatSize(bytes?: number): string {
+  if (!bytes || bytes <= 0) return '';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let i = 0;
+  let n = bytes;
+  while (n >= 1024 && i < units.length - 1) {
+    n /= 1024;
+    i += 1;
+  }
+  return `${i === 0 || n >= 10 ? Math.round(n) : n.toFixed(1)} ${units[i]}`;
+}
+
+/** 菜单项元信息：文件名 · 体积（清单不可用时为空，span 隐藏） */
+const metaOf = (a?: DownloadArtifact): string => {
+  if (!a?.name) return '';
+  return [a.name, formatSize(a.size)].filter(Boolean).join(' · ');
+};
+
+/** SSR 默认主按钮指向 macOS 安装版（无 JS 时最稳妥的直链），运行时按系统切换 */
+const mainHref = hrefOf(macPrimary);
 ---
 
 <div class:list={['dl-group', variant === 'block' && 'dl-group--block']}>
   <a
     class:list={['btn', 'btn-primary', sizeClass, 'dl-main']}
-    href={PROJECT.latest}
+    href={mainHref}
     data-dl-main
     aria-label={dict.download.app}
   >
@@ -59,21 +95,53 @@ const menuClass = variant === 'nav' ? ' dl-menu--right' : '';
     </button>
 
     <div class:list={['dl-menu', menuClass]} data-dl-menu hidden>
-      <a class="dl-item" href={PROJECT.latest} data-dl-link data-platform="darwin-arm64" data-kind="primary">
+      <a
+        class="dl-item"
+        href={hrefOf(macPrimary)}
+        data-dl-link
+        data-platform="darwin-arm64"
+        data-kind="primary"
+      >
         <span>{dict.download.macDmg}</span>
-        <span class="dl-item-meta" data-dl-meta hidden></span>
+        <span class="dl-item-meta" data-dl-meta hidden={!metaOf(macPrimary)}>{metaOf(macPrimary)}</span>
       </a>
-      <a class="dl-item" href={PROJECT.latest} data-dl-link data-platform="darwin-arm64" data-kind="alternative">
+      <a
+        class="dl-item"
+        href={hrefOf(macAlternative)}
+        data-dl-link
+        data-platform="darwin-arm64"
+        data-kind="alternative"
+      >
         <span>{dict.download.macZip}</span>
-        <span class="dl-item-meta" data-dl-meta hidden></span>
+        <span class="dl-item-meta" data-dl-meta hidden={!metaOf(macAlternative)}>{metaOf(macAlternative)}</span>
       </a>
-      <a class="dl-item" href={PROJECT.latest} data-dl-link data-platform="win32-x64" data-kind="primary">
+      <a
+        class="dl-item"
+        href={hrefOf(winPrimary)}
+        data-dl-link
+        data-platform="win32-x64"
+        data-kind="primary"
+      >
         <span>{dict.download.windowsSetup}</span>
-        <span class="dl-item-meta" data-dl-meta hidden></span>
+        <span class="dl-item-meta" data-dl-meta hidden={!metaOf(winPrimary)}>{metaOf(winPrimary)}</span>
       </a>
-      <a class="dl-item" href={PROJECT.latest} data-dl-link data-platform="win32-x64" data-kind="alternative">
+      <a
+        class="dl-item"
+        href={hrefOf(winAlternative)}
+        data-dl-link
+        data-platform="win32-x64"
+        data-kind="alternative"
+      >
         <span>{dict.download.windowsPortable}</span>
-        <span class="dl-item-meta" data-dl-meta hidden></span>
+        <span class="dl-item-meta" data-dl-meta hidden={!metaOf(winAlternative)}>{metaOf(winAlternative)}</span>
+      </a>
+
+      <div class="dl-divider" role="separator"></div>
+      <a class="dl-item dl-item--github" href={PROJECT.latest}>
+        <span>
+          <Icon name="github" size={13} />
+          {dict.download.github}
+        </span>
       </a>
     </div>
   </div>
@@ -149,6 +217,24 @@ const menuClass = variant === 'nav' ? ' dl-menu--right' : '';
 
   .dl-item:hover {
     background: rgba(255, 255, 255, 0.06);
+  }
+
+  .dl-item--github {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .dl-item--github :global(svg) {
+    color: var(--accent-hover);
+  }
+
+  .dl-divider {
+    height: 1px;
+    margin: 4px 6px;
+    background: var(--border);
   }
 
   .dl-item-meta {

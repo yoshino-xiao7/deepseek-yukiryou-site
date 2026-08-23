@@ -3,6 +3,7 @@
  * 简体中文为默认语言（挂在 / 下），英文挂在 /en/ 下。
  */
 import release from '../generated/release.json';
+import downloads from '../generated/downloads.json';
 
 export type Lang = 'zh-CN' | 'en';
 
@@ -12,6 +13,29 @@ export const LANG_LABEL: Record<Lang, string> = {
   'zh-CN': '中文',
   en: 'EN',
 };
+
+export interface DownloadArtifact {
+  name?: string;
+  url?: string;
+  size?: number;
+  sha256?: string;
+}
+
+/**
+ * 下载配置：构建时由 scripts/fetch-downloads.mjs 从国内 OSS 清单生成。
+ * source 为 'oss' 时四个直链可用；为 'github' 时页面回退 GitHub 最新发行页。
+ */
+export interface DownloadConfig {
+  schemaVersion: number;
+  version: string | null;
+  source: 'oss' | 'github';
+  platforms: Record<
+    string,
+    { primary?: DownloadArtifact; alternative?: DownloadArtifact }
+  >;
+}
+
+export const DOWNLOADS = downloads as DownloadConfig;
 
 /** 应用与项目相关的常量（两种语言共用） */
 export const PROJECT = {
@@ -166,7 +190,7 @@ export interface Dict {
     star: string;
     feedback: string;
   };
-  /** 下载中心（运行时从国内 OSS 清单绑定链接） */
+  /** 下载中心（构建时生成的下载配置，SSR 内联直链） */
   download: {
     app: string;
     mac: string;
@@ -176,6 +200,7 @@ export interface Dict {
     macZip: string;
     windowsSetup: string;
     windowsPortable: string;
+    github: string;
   };
   /** 页脚 */
   footer: {
@@ -488,6 +513,7 @@ export const t: Record<Lang, Dict> = {
       macZip: 'macOS ZIP',
       windowsSetup: 'Windows 安装版（Setup）',
       windowsPortable: 'Windows 便携版（ZIP）',
+      github: 'GitHub Releases',
     },
     footer: {
       tagline: '面向 macOS 与 Windows 的 DeepSeek Harness 桌面工作台',
@@ -799,6 +825,7 @@ export const t: Record<Lang, Dict> = {
       macZip: 'macOS ZIP',
       windowsSetup: 'Windows installer (Setup)',
       windowsPortable: 'Windows portable (ZIP)',
+      github: 'GitHub Releases',
     },
     footer: {
       tagline: 'A DeepSeek Harness desktop workbench for macOS and Windows',
