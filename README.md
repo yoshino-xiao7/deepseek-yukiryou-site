@@ -81,11 +81,11 @@ CLI 详情见 [EdgeOne CLI 文档](https://cdn.jsdelivr.net/npm/edgeone@latest/R
 
 | 位置 | 说明 |
 | --- | --- |
-| 版本号 | 无需手动维护：`pnpm build` 前由 `scripts/fetch-release.mjs` 自动从 GitHub Releases 获取，失败时回退到 `src/generated/release.json` 中已有值 |
+| 版本号 | 无需手动维护：SSR 构建时由 `scripts/fetch-release.mjs` 从 GitHub Releases 获取；运行时由 `src/scripts/downloads.ts` 读取国内 OSS 清单 `https://download-cn.suzuki.ink/downloads/latest.json` 覆盖 |
 | `astro.config.mjs` 中 `site` | 若域名变更，同步修改 canonical/sitemap |
 | `scripts/prepare-assets.mjs` 中 `ICON_URL` | 图标源地址 |
 | `public/og-cover.png` | 品牌视觉更新时重新生成（`pnpm assets`） |
-| 下载链接 | 组件内均引用 `PROJECT.latest`，指向 GitHub Releases |
+| 下载链接 | 由 `src/components/Download.astro` + `src/scripts/downloads.ts` 统一管理：国内用户读取清单直链（DMG / macOS ZIP / Windows Setup / 便携版），读取失败（如海外被 ESA 拦截）时统一回退 GitHub Releases |
 
 ## 免责声明
 
