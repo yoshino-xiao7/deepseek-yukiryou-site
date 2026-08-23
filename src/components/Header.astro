@@ -4,6 +4,7 @@
  * 移动端折叠菜单。
  */
 import Icon from './Icon.astro';
+import Download from './Download.astro';
 import { PROJECT, type Dict, type Lang } from '../i18n/content';
 
 interface Props {
@@ -44,10 +45,7 @@ const otherHref = otherLang === 'en' ? '/en/' : '/';
       <a class="lang-switch" href={otherHref} aria-label="Switch language">
         {lang === 'zh-CN' ? 'EN' : '中文'}
       </a>
-      <a class="btn btn-primary btn-sm" href={PROJECT.latest}>
-        <Icon name="download" size={15} />
-        {dict.nav.download}
-      </a>
+      <Download dict={dict} variant="nav" />
       <button
         class="nav-toggle"
         type="button"
@@ -68,10 +66,7 @@ const otherHref = otherLang === 'en' ? '/en/' : '/';
       ))}
     </nav>
     <div class="mobile-foot">
-      <a class="btn btn-primary btn-block" href={PROJECT.latest}>
-        <Icon name="download" size={15} />
-        {dict.nav.download}
-      </a>
+      <Download dict={dict} variant="block" />
       <a class="lang-switch" href={otherHref}>{lang === 'zh-CN' ? 'EN' : '中文'}</a>
     </div>
   </div>

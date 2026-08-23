@@ -1,0 +1,162 @@
+---
+/**
+ * 统一下载组件：主按钮（按系统显示“下载 macOS / 下载 Windows”）
+ * + “其他下载”下拉（DMG / macOS ZIP / Windows Setup / Windows 便携版）。
+ *
+ * 链接由 src/scripts/downloads.ts 在运行时从国内 OSS 清单绑定；
+ * SSR 默认指向 GitHub 最新发行页，作为无 JS / 清单不可用时的回退。
+ */
+import Icon from './Icon.astro';
+import { PROJECT, type Dict } from '../i18n/content';
+
+interface Props {
+  dict: Dict;
+  /** lg / sm / nav / block：导航用 nav，全宽用 block */
+  variant?: 'lg' | 'sm' | 'nav' | 'block';
+}
+
+const { dict, variant = 'lg' } = Astro.props;
+
+const sizeClass =
+  variant === 'lg'
+    ? 'btn-lg'
+    : variant === 'sm' || variant === 'nav'
+      ? 'btn-sm'
+      : 'btn-block';
+
+const iconSize = variant === 'lg' ? 17 : 15;
+const menuClass = variant === 'nav' ? ' dl-menu--right' : '';
+---
+
+<div class:list={['dl-group', variant === 'block' && 'dl-group--block']}>
+  <a
+    class:list={['btn', 'btn-primary', sizeClass, 'dl-main']}
+    href={PROJECT.latest}
+    data-dl-main
+    aria-label={dict.download.app}
+  >
+    <Icon name="download" size={iconSize} />
+    <span
+      data-dl-label
+      data-label-mac={dict.download.mac}
+      data-label-win={dict.download.windows}
+    >
+      {dict.download.app}
+    </span>
+  </a>
+
+  <div class="dl-wrap" data-dl-wrap>
+    <button
+      type="button"
+      class:list={['btn', 'btn-secondary', sizeClass, 'dl-toggle']}
+      data-dl-toggle
+      aria-haspopup="true"
+      aria-expanded="false"
+    >
+      <Icon name="list" size={iconSize} />
+      <span>{dict.download.menu}</span>
+      <Icon name="chevron-down" size={13} />
+    </button>
+
+    <div class:list={['dl-menu', menuClass]} data-dl-menu hidden>
+      <a class="dl-item" href={PROJECT.latest} data-dl-link data-platform="darwin-arm64" data-kind="primary">
+        <span>{dict.download.macDmg}</span>
+        <span class="dl-item-meta" data-dl-meta hidden></span>
+      </a>
+      <a class="dl-item" href={PROJECT.latest} data-dl-link data-platform="darwin-arm64" data-kind="alternative">
+        <span>{dict.download.macZip}</span>
+        <span class="dl-item-meta" data-dl-meta hidden></span>
+      </a>
+      <a class="dl-item" href={PROJECT.latest} data-dl-link data-platform="win32-x64" data-kind="primary">
+        <span>{dict.download.windowsSetup}</span>
+        <span class="dl-item-meta" data-dl-meta hidden></span>
+      </a>
+      <a class="dl-item" href={PROJECT.latest} data-dl-link data-platform="win32-x64" data-kind="alternative">
+        <span>{dict.download.windowsPortable}</span>
+        <span class="dl-item-meta" data-dl-meta hidden></span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .dl-group {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .dl-group--block {
+    display: flex;
+    width: 100%;
+  }
+
+  .dl-group--block .dl-main,
+  .dl-group--block .dl-toggle {
+    flex: 1;
+  }
+
+  .dl-wrap {
+    position: relative;
+  }
+
+  .dl-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .dl-toggle svg:last-child {
+    transition: transform 0.15s ease;
+  }
+
+  .dl-toggle[aria-expanded='true'] svg:last-child {
+    transform: rotate(180deg);
+  }
+
+  .dl-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: min(300px, calc(100vw - 32px));
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    box-shadow: 0 18px 44px -14px rgba(0, 0, 0, 0.65);
+  }
+
+  .dl-menu[hidden] {
+    display: none;
+  }
+
+  .dl-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    transition: background 0.15s ease;
+  }
+
+  .dl-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .dl-item-meta {
+    font-size: 11.5px;
+    font-weight: 500;
+    font-family: var(--font-mono);
+    color: var(--text-faint);
+    line-height: 1.45;
+    word-break: break-all;
+  }
+</style>

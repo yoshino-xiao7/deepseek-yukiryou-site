@@ -3,6 +3,7 @@
  * 安装：三步 + 系统要求 + 校验说明
  */
 import Icon from './Icon.astro';
+import Download from './Download.astro';
 import { PROJECT, type Dict } from '../i18n/content';
 
 interface Props {
@@ -58,12 +59,22 @@ const { dict } = Astro.props;
             <Icon name="apple" size={12} />
             macOS
           </p>
-          <code class="dmg-name">{PROJECT.dmgName}</code>
+          <code
+            class="dmg-name"
+            data-dl-file
+            data-platform="darwin-arm64"
+            data-kind="primary"
+          >{PROJECT.dmgName}</code>
           <p class="side-label">
             <Icon name="windows" size={12} />
             Windows
           </p>
-          <code class="dmg-name">{PROJECT.winExeName}</code>
+          <code
+            class="dmg-name"
+            data-dl-file
+            data-platform="win32-x64"
+            data-kind="primary"
+          >{PROJECT.winExeName}</code>
           <p class="side-note">{dict.install.fileNameDesc}</p>
           <p class="side-note side-note-strong">
             <Icon name="shield" size={13} />
@@ -71,10 +82,7 @@ const { dict } = Astro.props;
           </p>
         </div>
 
-        <a class="btn btn-primary btn-block" href={PROJECT.releases}>
-          <Icon name="download" size={16} />
-          {dict.install.cta}
-        </a>
+        <Download dict={dict} variant="block" />
       </aside>
     </div>
   </div>

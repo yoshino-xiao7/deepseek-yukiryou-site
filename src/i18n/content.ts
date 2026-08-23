@@ -27,9 +27,10 @@ export const PROJECT = {
   icon: '/app-icon-512.png',
   /** 版本号：构建时由 scripts/fetch-release.mjs 从 GitHub Releases 动态获取 */
   version: release.version,
-  dmgName: 'DeepSeek.YukiRyou-<version>-arm64.dmg',
-  winExeName: 'DeepSeek.YukiRyou-<version>-win32-x64-Setup.exe',
-  winZipName: 'DeepSeek.YukiRyou-win32-x64-<version>-portable.zip',
+  /** 安装包文件名：SSR 回退值，运行时由下载清单 latest.json 覆盖为实际文件名 */
+  dmgName: `DeepSeek.YukiRyou-${release.version}-arm64.dmg`,
+  winExeName: `DeepSeek.YukiRyou-${release.version}-win32-x64-Setup.exe`,
+  winZipName: `DeepSeek.YukiRyou-win32-x64-${release.version}-portable.zip`,
 } as const;
 
 export interface NavItem {
@@ -164,6 +165,17 @@ export interface Dict {
     download: string;
     star: string;
     feedback: string;
+  };
+  /** 下载中心（运行时从国内 OSS 清单绑定链接） */
+  download: {
+    app: string;
+    mac: string;
+    windows: string;
+    menu: string;
+    macDmg: string;
+    macZip: string;
+    windowsSetup: string;
+    windowsPortable: string;
   };
   /** 页脚 */
   footer: {
@@ -467,6 +479,16 @@ export const t: Record<Lang, Dict> = {
       star: '⭐ Star 支持',
       feedback: '反馈问题',
     },
+    download: {
+      app: '下载应用',
+      mac: '下载 macOS',
+      windows: '下载 Windows',
+      menu: '其他下载',
+      macDmg: 'macOS 安装版（DMG）',
+      macZip: 'macOS ZIP',
+      windowsSetup: 'Windows 安装版（Setup）',
+      windowsPortable: 'Windows 便携版（ZIP）',
+    },
     footer: {
       tagline: '面向 macOS 与 Windows 的 DeepSeek Harness 桌面工作台',
       disclaimer:
@@ -767,6 +789,16 @@ export const t: Record<Lang, Dict> = {
       download: 'Download App',
       star: '⭐ Star us',
       feedback: 'Report an issue',
+    },
+    download: {
+      app: 'Download App',
+      mac: 'Download macOS',
+      windows: 'Download Windows',
+      menu: 'Other downloads',
+      macDmg: 'macOS installer (DMG)',
+      macZip: 'macOS ZIP',
+      windowsSetup: 'Windows installer (Setup)',
+      windowsPortable: 'Windows portable (ZIP)',
     },
     footer: {
       tagline: 'A DeepSeek Harness desktop workbench for macOS and Windows',

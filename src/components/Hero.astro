@@ -3,6 +3,7 @@
  * Hero 区：徽章 + 主标题 + 副标题 + 按钮 + 需求列表 + 应用截图
  */
 import Icon from './Icon.astro';
+import Download from './Download.astro';
 import { PROJECT, type Dict } from '../i18n/content';
 
 interface Props {
@@ -19,7 +20,7 @@ const { dict } = Astro.props;
         <span class="hero-badge-dot"></span>
         {dict.hero.badge}
         <span class="hero-badge-sep"></span>
-        {dict.hero.versionLabel} {PROJECT.version}
+        {dict.hero.versionLabel} <span data-dl-version>{PROJECT.version}</span>
       </span>
 
       <h1 class="hero-title">
@@ -31,10 +32,7 @@ const { dict } = Astro.props;
       <p class="hero-sub">{dict.hero.subtitle}</p>
 
       <div class="hero-cta">
-        <a class="btn btn-primary btn-lg" href={PROJECT.latest}>
-          <Icon name="download" size={17} />
-          {dict.hero.ctaPrimary}
-        </a>
+        <Download dict={dict} variant="lg" />
         <a class="btn btn-secondary btn-lg" href={PROJECT.repo}>
           <Icon name="github" size={17} />
           {dict.hero.ctaSecondary}

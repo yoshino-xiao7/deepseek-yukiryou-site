@@ -3,6 +3,7 @@
  * 底部 CTA 横幅
  */
 import Icon from './Icon.astro';
+import Download from './Download.astro';
 import { PROJECT, type Dict } from '../i18n/content';
 
 interface Props {
@@ -21,10 +22,7 @@ const { dict } = Astro.props;
       <h2 class="cta-title">{dict.cta.title}</h2>
       <p class="cta-sub">{dict.cta.subtitle}</p>
       <div class="cta-actions">
-        <a class="btn btn-primary btn-lg" href={PROJECT.latest}>
-          <Icon name="download" size={17} />
-          {dict.cta.download}
-        </a>
+        <Download dict={dict} variant="lg" />
         <a class="btn btn-secondary btn-lg" href={PROJECT.repo}>
           <Icon name="star" size={17} />
           {dict.cta.star}

@@ -142,5 +142,8 @@ const allJsonLd = [websiteJsonLd, softwareJsonLd, ...jsonLd];
         els.forEach((el) => el.classList.add('is-visible'));
       }
     </script>
+
+    <!-- 下载中心：读取国内 OSS 清单并绑定四个直链，失败回退 GitHub 最新发行页 -->
+    <script src="../scripts/downloads.ts"></script>
   </body>
 </html>
