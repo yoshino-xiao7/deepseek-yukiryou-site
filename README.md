@@ -24,12 +24,18 @@ pnpm assets         # 重新生成图标与 OG 封面图（需要 sips 与 Pillo
 
 ```text
 ├── astro.config.mjs          # Astro 配置（site、i18n、sitemap）
+├── edge-functions/           # EdgeOne Edge Functions（随部署发布）
+│   └── api/downloads.js      # 下载清单同域代理：/api/downloads（实时取最新配置）
 ├── scripts/
+│   ├── fetch-release.mjs     # 构建前从 GitHub Releases 获取版本号
+│   ├── fetch-downloads.mjs   # 构建前获取下载清单，生成下载配置（内联 + 同域静态）
+│   ├── copy-functions.mjs    # 构建后把 edge-functions/ 复制进 dist/
 │   ├── prepare-assets.mjs    # 素材准备：图标缩放 + OG 图生成
 │   └── og_cover.py           # OG 封面绘制（Pillow，1200x630）
-├── public/                   # 静态资源（图标、OG 图、robots.txt、manifest）
+├── public/                   # 静态资源（图标、OG 图、robots.txt、manifest、downloads.json）
 └── src/
     ├── i18n/content.ts       # 全站中英双语内容字典（改文案主要改这里）
+    ├── scripts/downloads.ts  # 下载中心客户端逻辑（实时代理 > 内联配置 > 同域静态）
     ├── layouts/Base.astro    # 基础布局：完整 SEO head（canonical/hreflang/OG/JSON-LD）
     ├── components/           # 页面区块组件
     ├── pages/index.astro     # 简体中文首页（/）
@@ -77,15 +83,29 @@ CLI 详情见 [EdgeOne CLI 文档](https://cdn.jsdelivr.net/npm/edgeone@latest/R
    - `EO_PROJECT_NAME`：EdgeOne 项目名（Variable）
 3. 推送 `main` 分支即自动构建并部署；也可在 Actions 页面手动触发
 
+### 方式四：EdgeOne Pages 自带流水线（推荐，本仓库当前使用）
+
+在 EdgeOne Makers 控制台创建 Pages 项目并关联本 GitHub 仓库（默认 `main` 分支）：
+
+- 每次推送自动构建部署；`edge-functions/` 目录随构建产物自动发布为 Edge Functions
+- 构建命令即 `pnpm build`（`edgeone.json` 中 `outputDirectory: ./dist`，Node 22）
+- 发版后如需立即更新官网：控制台点「重新部署」，或配置[部署钩子](https://edgeone.ai/zh/document/160427672908292096)（POST 触发）
+
+## 版本与下载的实时同步机制
+
+- **首屏（SSR）**：构建时由 `fetch-downloads.mjs` 获取最新清单，四个下载链接与版本号直接渲染进 HTML（国内构建为 OSS 直链；海外构建自动回退 GitHub 资产）
+- **实时（运行时）**：页面每次加载请求同域 Edge Function `/api/downloads`（`edge-functions/api/downloads.js`），实时返回最新下载配置——国内边缘节点返回 OSS 直链，海外节点自动回退 GitHub；发布新版本后刷新页面即同步，与构建流水线解耦
+- **兜底**：代理不可用时回退页面内联配置 → 同域 `/downloads.json`；任何失败均在浏览器控制台记录具体原因
+
 ## 上线前需要替换的内容
 
 | 位置 | 说明 |
 | --- | --- |
-| 版本号 | 无需手动维护：SSR 构建时由 `scripts/fetch-release.mjs` 从 GitHub Releases 获取；运行时由 `src/scripts/downloads.ts` 读取国内 OSS 清单 `https://download-cn.suzuki.ink/downloads/latest.json` 覆盖 |
+| 版本号 | 无需手动维护：构建时自动获取；运行时由 `/api/downloads` 实时覆盖 |
 | `astro.config.mjs` 中 `site` | 若域名变更，同步修改 canonical/sitemap |
 | `scripts/prepare-assets.mjs` 中 `ICON_URL` | 图标源地址 |
 | `public/og-cover.png` | 品牌视觉更新时重新生成（`pnpm assets`） |
-| 下载链接 | 由 `src/components/Download.astro` + `src/scripts/downloads.ts` 统一管理：国内用户读取清单直链（DMG / macOS ZIP / Windows Setup / 便携版），读取失败（如海外被 ESA 拦截）时统一回退 GitHub Releases |
+| 下载链接 | 由 `Download.astro` + `downloads.ts` + Edge Function `/api/downloads` 统一管理：实时读取清单直链（DMG / macOS ZIP / Windows Setup / 便携版），不可用时回退 GitHub Releases |
 
 ## 免责声明
 

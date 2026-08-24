@@ -1,17 +1,15 @@
 /**
  * 下载中心客户端逻辑（全站共享，随 Base 布局加载）。
  *
- * 架构：下载配置在构建时由 scripts/fetch-downloads.mjs 生成，随页面 SSR 内联
- * （#downloads-config），四个下载链接在首屏 HTML 中即为正确直链——
- * 不依赖任何浏览器跨域 fetch。
+ * 架构：下载配置来自三层，实时性从高到低：
+ * 1. 同域代理 /api/downloads（EdgeOne Edge Function）——页面每次加载都请求，
+ *    实时返回最新下载配置（版本号 + 四个直链）。发布新版本后刷新页面即同步，
+ *    与构建流水线解耦；国内边缘节点返回 OSS 直链，海外节点自动回退 GitHub。
+ * 2. 页面内联配置 #downloads-config——构建时生成，SSR 首屏即为正确链接（零请求）。
+ * 3. 同域静态 /downloads.json——构建产物，内联缺失时的兜底。
  *
- * 本脚本只做三件事：
- * 1. 读取内联配置；缺失时回退同域静态 /downloads.json（无跨域问题）
- * 2. 按系统切换主按钮标签与链接（纯本地逻辑）
- * 3. 处理“其他下载”下拉菜单交互
- *
- * 失败处理（绝不静默）：每一步失败都记录具体原因；
- * 配置彻底不可用时，所有下载入口统一指向 GitHub 最新发行页并记录回退原因。
+ * 失败处理（绝不静默）：每一步失败都 console 记录具体原因；
+ * 全部不可用时保持 SSR 内联配置（构建时生成，仍然可用），并记录回退原因。
  */
 const GITHUB_LATEST =
   'https://github.com/yoshino-xiao7/deepseek-harness-desktop-yukiryou/releases/latest';
@@ -64,44 +62,59 @@ function isConfig(value: unknown): value is DownloadConfig {
   );
 }
 
-/** 读取下载配置：优先内联 JSON（构建时生成），缺失时回退同域 /downloads.json */
-async function loadConfig(): Promise<DownloadConfig | null> {
-  // 1) 页面内联配置（发布时生成，主路径，零网络请求）
+/** 页面内联配置（构建时生成） */
+function loadInlineConfig(): DownloadConfig | null {
   const inlineEl = document.getElementById('downloads-config');
-  if (inlineEl) {
-    try {
-      const parsed = JSON.parse(inlineEl.textContent ?? '');
-      if (isConfig(parsed)) return parsed;
-      console.error('[downloads] 内联下载配置结构异常，改用同域 /downloads.json');
-    } catch (err) {
-      console.error(
-        `[downloads] 解析内联下载配置失败（${err instanceof Error ? err.message : String(err)}），改用同域 /downloads.json`
-      );
-    }
-  }
-
-  // 2) 同域静态配置（发布时生成，随 dist 一起部署，无跨域）
+  if (!inlineEl) return null;
   try {
-    const res = await fetch('/downloads.json');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const parsed: unknown = await res.json();
+    const parsed: unknown = JSON.parse(inlineEl.textContent ?? '');
     if (isConfig(parsed)) return parsed;
-    console.error('[downloads] 同域 /downloads.json 结构异常，将回退 GitHub 最新发行页');
+    console.error('[downloads] 内联下载配置结构异常');
   } catch (err) {
     console.error(
-      `[downloads] 读取同域 /downloads.json 失败（${err instanceof Error ? err.message : String(err)}），将回退 GitHub 最新发行页`
+      `[downloads] 解析内联下载配置失败（${err instanceof Error ? err.message : String(err)}）`
     );
   }
   return null;
 }
 
-async function main() {
-  const config = await loadConfig();
-  const os = detectOS();
+/** 同域静态 /downloads.json（构建产物兜底） */
+async function loadStaticConfig(): Promise<DownloadConfig | null> {
+  try {
+    const res = await fetch('/downloads.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const parsed: unknown = await res.json();
+    if (isConfig(parsed)) return parsed;
+    console.error('[downloads] 同域 /downloads.json 结构异常');
+  } catch (err) {
+    console.error(
+      `[downloads] 读取同域 /downloads.json 失败（${err instanceof Error ? err.message : String(err)}）`
+    );
+  }
+  return null;
+}
 
+/** 1) 同域实时代理（EdgeOne Edge Function）：发布新版本后刷新页面即同步 */
+async function loadLiveConfig(): Promise<DownloadConfig | null> {
+  try {
+    const res = await fetch('/api/downloads', { headers: { Accept: 'application/json' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const parsed: unknown = await res.json();
+    if (isConfig(parsed)) return parsed;
+    console.error('[downloads] 同域代理 /api/downloads 返回结构异常');
+  } catch (err) {
+    console.error(
+      `[downloads] 读取同域代理 /api/downloads 失败（${err instanceof Error ? err.message : String(err)}），回退页面内联配置`
+    );
+  }
+  return null;
+}
+
+/** 用配置绑定页面元素（版本徽章 / 主按钮 / 四个直链 / 文件名） */
+function applyConfig(config: DownloadConfig | null) {
+  const os = detectOS();
   const platforms = config?.platforms;
-  const ready =
-    !!platforms?.['darwin-arm64'] && !!platforms?.['win32-x64'];
+  const ready = !!platforms?.['darwin-arm64'] && !!platforms?.['win32-x64'];
 
   if (!config) {
     console.warn('[downloads] 下载配置不可用：所有下载入口回退 GitHub 最新发行页');
@@ -116,14 +129,14 @@ async function main() {
   const sizeFor = (platform: string, kind: Kind): number | undefined =>
     platforms?.[platform]?.[kind]?.size;
 
-  // 版本号徽章：内联/同域配置可能比 SSR 值更新（旧缓存页面场景）
+  // 版本号徽章
   if (config?.version) {
     document.querySelectorAll<HTMLElement>('[data-dl-version]').forEach((el) => {
       el.textContent = config.version!;
     });
   }
 
-  // 主下载按钮：按系统切换标签与链接（仅本地逻辑，无网络请求）
+  // 主下载按钮：按系统切换标签与链接
   document.querySelectorAll<HTMLAnchorElement>('[data-dl-main]').forEach((btn) => {
     const label = btn.querySelector<HTMLElement>('[data-dl-label]');
     if (ready && os && label) {
@@ -131,7 +144,6 @@ async function main() {
         os === 'mac' ? (label.dataset.labelMac ?? '') : (label.dataset.labelWin ?? '');
       btn.href = urlFor(os === 'mac' ? 'darwin-arm64' : 'win32-x64', 'primary');
     } else if (!ready) {
-      // 配置不可用：统一指向 GitHub 最新发行页（原因已在上面记录）
       btn.href = GITHUB_LATEST;
     }
   });
@@ -162,8 +174,10 @@ async function main() {
     const name = nameFor(platform, kind);
     if (name) el.textContent = name;
   });
+}
 
-  // “其他下载”下拉菜单交互
+/** “其他下载”下拉菜单交互 */
+function bindMenuInteractions() {
   document.querySelectorAll<HTMLElement>('[data-dl-wrap]').forEach((wrap) => {
     const toggle = wrap.querySelector<HTMLButtonElement>('[data-dl-toggle]');
     const menu = wrap.querySelector<HTMLElement>('[data-dl-menu]');
@@ -186,6 +200,15 @@ async function main() {
       if (event.key === 'Escape') close();
     });
   });
+}
+
+async function main() {
+  // 实时代理优先；失败回退内联（构建时生成）→ 同域静态产物，每步失败都记录原因
+  const live = await loadLiveConfig();
+  const config = live ?? (loadInlineConfig() ?? (await loadStaticConfig()));
+
+  applyConfig(config);
+  bindMenuInteractions();
 }
 
 main();
