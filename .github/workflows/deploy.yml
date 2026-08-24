@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # 兜底：即使 app 仓库未配置发布触发，也每天检查一次线上版本，
+  # 发现新 Release 时自动重建并部署（海外 runner 会走 GitHub 资产回退路径）。
+  schedule:
+    - cron: '17 4 * * *'
 
 jobs:
   build-and-deploy:
@@ -23,14 +27,40 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      # 仅定时触发时检查：GitHub 最新 Release 与线上官网版本一致则跳过本次构建
+      - name: Skip if live site is already up to date
+        id: skip-check
+        if: github.event_name == 'schedule'
+        run: |
+          LATEST="$(
+            curl -sf --max-time 20 \
+              https://api.github.com/repos/yoshino-xiao7/deepseek-harness-desktop-yukiryou/releases/latest \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{console.log((JSON.parse(s).tag_name||'').replace(/^v/,'').trim())}catch{console.log('')}})"
+          )"
+          LIVE="$(
+            curl -sf --max-time 20 https://deepseek.yukiryou.icu/ \
+            | grep -oE 'data-dl-version[^>]*>[^<]+' | head -1 \
+            | sed -E 's/.*>([^<]+)$/\1/' | tr -d ' '
+          )"
+          echo "latest=$LATEST live=$LIVE"
+          if [ -n "$LATEST" ] && [ "$LATEST" = "$LIVE" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install dependencies
+        if: steps.skip-check.outputs.skip != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build
+        if: steps.skip-check.outputs.skip != 'true'
         run: pnpm build
 
       - name: Install EdgeOne CLI
+        if: steps.skip-check.outputs.skip != 'true'
         run: npm install -g edgeone
 
       - name: Deploy to EdgeOne
+        if: steps.skip-check.outputs.skip != 'true'
         run: edgeone makers deploy ./dist -n "${{ vars.EO_PROJECT_NAME }}" -t "${{ secrets.EO_API_TOKEN }}"

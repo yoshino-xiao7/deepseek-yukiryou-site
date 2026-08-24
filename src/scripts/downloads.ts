@@ -105,8 +105,8 @@ async function main() {
 
   if (!config) {
     console.warn('[downloads] 下载配置不可用：所有下载入口回退 GitHub 最新发行页');
-  } else if (config.source === 'github') {
-    console.warn('[downloads] 下载配置来源为 github（构建时清单获取失败）：四个直链不可用，使用 GitHub 最新发行页');
+  } else if (!ready) {
+    console.warn('[downloads] 下载配置缺少平台数据（构建时所有来源均不可用）：使用 GitHub 最新发行页');
   }
 
   const urlFor = (platform: string, kind: Kind): string =>
