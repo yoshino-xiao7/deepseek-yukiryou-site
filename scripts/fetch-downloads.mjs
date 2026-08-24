@@ -23,6 +23,7 @@ const outSrc = join(root, 'src', 'generated', 'downloads.json');
 const outPublic = join(root, 'public', 'downloads.json');
 
 const MANIFEST_URL = 'https://download-cn.suzuki.ink/downloads/latest.json';
+const MIRROR_BASE = 'https://download-cn.suzuki.ink/releases';
 const GITHUB_API =
   'https://api.github.com/repos/yoshino-xiao7/deepseek-harness-desktop-yukiryou/releases/latest';
 const EMPTY = { schemaVersion: 1, version: null, source: 'github', platforms: {} };
@@ -100,18 +101,24 @@ async function fetchFromGithub() {
     throw new Error('GitHub 最新 Release 缺少必要资产（DMG 或 Setup.exe）');
   }
 
+  // 首屏面向国内访客：镜像与 GitHub 的资产文件名一致，按镜像模板改写 URL；
+  // 海外访客的链接在运行时由 /api/downloads 按 GEO 改回 GitHub。
+  const toMirror = (a) =>
+    a ? { ...a, url: `${MIRROR_BASE}/v${version}/${a.name}` } : undefined;
+
   return {
     schemaVersion: 1,
     version,
-    source: 'github',
+    source: 'oss',
+    dataSource: 'github',
     platforms: {
       'darwin-arm64': {
-        primary: macDmg,
-        alternative: find(/darwin-arm64.*\.zip$/i),
+        primary: toMirror(macDmg),
+        alternative: toMirror(find(/darwin-arm64.*\.zip$/i)),
       },
       'win32-x64': {
-        primary: winExe,
-        alternative: find(/win32-x64.*portable.*\.zip$/i),
+        primary: toMirror(winExe),
+        alternative: toMirror(find(/win32-x64.*portable.*\.zip$/i)),
       },
     },
   };
@@ -133,7 +140,7 @@ async function main() {
     const config = await fetchFromGithub();
     writeConfig(config);
     console.warn(
-      `[fetch-downloads] 已改用 GitHub Release 资产构造配置（版本 v${config.version}，链接指向 GitHub）`
+      `[fetch-downloads] 已改用 GitHub Release 资产构造配置（版本 v${config.version}，首屏链接按镜像模板改写；海外访客由 /api/downloads 运行时改回 GitHub）`
     );
     return;
   } catch (err) {
