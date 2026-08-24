@@ -3,8 +3,8 @@
  *
  * 架构：下载配置来自三层，实时性从高到低：
  * 1. 同域代理 /api/downloads（EdgeOne Edge Function）——页面每次加载都请求，
- *    实时返回最新下载配置（版本号 + 四个直链）。发布新版本后刷新页面即同步，
- *    与构建流水线解耦；国内边缘节点返回 OSS 直链，海外节点自动回退 GitHub。
+ *    实时返回最新下载配置（版本号 + 四个下载链接）。发布新版本后刷新页面即同步，
+ *    与构建流水线解耦；并按访客地区分化：中国大陆访客拿国内镜像直链，其余拿 GitHub。
  * 2. 页面内联配置 #downloads-config——构建时生成，SSR 首屏即为正确链接（零请求）。
  * 3. 同域静态 /downloads.json——构建产物，内联缺失时的兜底。
  *
@@ -100,7 +100,13 @@ async function loadLiveConfig(): Promise<DownloadConfig | null> {
     const res = await fetch('/api/downloads', { headers: { Accept: 'application/json' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const parsed: unknown = await res.json();
-    if (isConfig(parsed)) return parsed;
+    if (isConfig(parsed)) {
+      const cfg = parsed as DownloadConfig & { region?: string };
+      if (cfg.region === 'cn' && cfg.source !== 'oss') {
+        console.warn('[downloads] 国内访客未取到镜像直链，实际来源：' + String(cfg.source));
+      }
+      return parsed;
+    }
     console.error('[downloads] 同域代理 /api/downloads 返回结构异常');
   } catch (err) {
     console.error(
