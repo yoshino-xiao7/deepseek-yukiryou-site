@@ -1,34 +1,34 @@
 {
   "schemaVersion": 1,
-  "version": "1.0.0",
+  "version": "1.0.3",
   "source": "oss",
   "platforms": {
     "darwin-arm64": {
       "primary": {
-        "name": "DeepSeek.YukiRyou-1.0.0-arm64.dmg",
-        "url": "https://download-cn.suzuki.ink/releases/v1.0.0/DeepSeek.YukiRyou-1.0.0-arm64.dmg",
-        "size": 409917431,
-        "sha256": "45b9ca4e8e7a33ac8f1d6fbb72c467c675153675f81c3be19e816fa81f84a9da"
+        "name": "DeepSeek.YukiRyou-1.0.3-arm64.dmg",
+        "url": "https://download-cn.suzuki.ink/releases/v1.0.3/DeepSeek.YukiRyou-1.0.3-arm64.dmg",
+        "size": 411256765,
+        "sha256": "1b35aa8207775b106cbff1d31d591e9b8c542a996d530930aa250fd786d9ef83"
       },
       "alternative": {
-        "name": "DeepSeek.YukiRyou-darwin-arm64-1.0.0.zip",
-        "url": "https://download-cn.suzuki.ink/releases/v1.0.0/DeepSeek.YukiRyou-darwin-arm64-1.0.0.zip",
-        "size": 235834980,
-        "sha256": "e9b2089f6cc2fd71edf16f9263ee2c6007a37944a95549cacd864624029854d0"
+        "name": "DeepSeek.YukiRyou-darwin-arm64-1.0.3.zip",
+        "url": "https://download-cn.suzuki.ink/releases/v1.0.3/DeepSeek.YukiRyou-darwin-arm64-1.0.3.zip",
+        "size": 235861182,
+        "sha256": "b2674e47ff5d6b9b066e5bbf55f6a8dd942f695492849103c5ff694a7ddbc406"
       }
     },
     "win32-x64": {
       "primary": {
-        "name": "DeepSeek.YukiRyou-1.0.0-win32-x64-Setup.exe",
-        "url": "https://download-cn.suzuki.ink/releases/v1.0.0/DeepSeek.YukiRyou-1.0.0-win32-x64-Setup.exe",
-        "size": 181550126,
-        "sha256": "245a3d5b18d65b32a1af81793a6b5966d620b2714b2c3ae3376be22c12a5c428"
+        "name": "DeepSeek.YukiRyou-1.0.3-win32-x64-Setup.exe",
+        "url": "https://download-cn.suzuki.ink/releases/v1.0.3/DeepSeek.YukiRyou-1.0.3-win32-x64-Setup.exe",
+        "size": 181568702,
+        "sha256": "4cd97671fef5008521150a4aa19eb23e04b6afcc7a3745f1da74ae5d424d1657"
       },
       "alternative": {
-        "name": "DeepSeek.YukiRyou-win32-x64-1.0.0-portable.zip",
-        "url": "https://download-cn.suzuki.ink/releases/v1.0.0/DeepSeek.YukiRyou-win32-x64-1.0.0-portable.zip",
-        "size": 252505278,
-        "sha256": "3365f5c1b79eaa322cc82b9c53552b6b839042196cc41c6076d67ed216b8c635"
+        "name": "DeepSeek.YukiRyou-win32-x64-1.0.3-portable.zip",
+        "url": "https://download-cn.suzuki.ink/releases/v1.0.3/DeepSeek.YukiRyou-win32-x64-1.0.3-portable.zip",
+        "size": 252531351,
+        "sha256": "bf3cad961faecc1d1c1728cab244de776c8a2990c2face470bbc2968a580716c"
       }
     }
   }

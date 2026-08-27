@@ -13,6 +13,7 @@ interface Props {
 const { lang, dict } = Astro.props;
 
 const siteLinks = [
+  { href: '#concept', label: dict.nav.concept },
   { href: '#features', label: dict.nav.features },
   { href: '#why', label: dict.nav.why },
   { href: '#install', label: dict.nav.install },
@@ -36,15 +37,15 @@ const projectLinks = [
           <img class="brand-logo" src={PROJECT.icon} alt="" width="32" height="32" loading="lazy" />
           <span class="brand-name">DeepSeek&nbsp;YukiRyou</span>
         </a>
-        <p class="footer-tagline">{dict.footer.tagline}</p>
-        <a class="btn btn-secondary btn-sm" href={PROJECT.repo}>
-          <Icon name="github" size={15} />
+        <p class="t-caption footer-tagline">{dict.footer.tagline}</p>
+        <a class="btn btn-secondary btn-s" href={PROJECT.repo}>
+          <Icon name="github" size={14} />
           GitHub
         </a>
       </div>
 
       <nav class="footer-col" aria-label="Footer site">
-        <h4 class="footer-heading">{dict.footer.navTitle}</h4>
+        <h4 class="t-mono-label footer-heading">{dict.footer.navTitle}</h4>
         <ul class="footer-links">
           {siteLinks.map((l) => (
             <li><a href={l.href}>{l.label}</a></li>
@@ -53,7 +54,7 @@ const projectLinks = [
       </nav>
 
       <nav class="footer-col" aria-label="Footer project">
-        <h4 class="footer-heading">{dict.footer.projectLinks}</h4>
+        <h4 class="t-mono-label footer-heading">{dict.footer.projectLinks}</h4>
         <ul class="footer-links">
           {projectLinks.map((l) => (
             <li><a href={l.href} target="_blank" rel="noopener noreferrer">{l.label}</a></li>
@@ -99,7 +100,7 @@ const projectLinks = [
           />
           <path
             d="M12 6.2l1.4 3.1 3.4.4-2.5 2.3.7 3.4-3-1.7-3 1.7.7-3.4-2.5-2.3 3.4-.4L12 6.2z"
-            fill="#05070b"
+            fill="#0a0a0a"
           />
         </svg>
         湘公网安备43102302000181号
@@ -110,16 +111,15 @@ const projectLinks = [
 
 <style>
   .site-footer {
-    border-top: 1px solid var(--border);
-    background: rgba(5, 7, 11, 0.6);
-    padding-block: 56px 32px;
+    border-top: 1px solid var(--border-subtle);
+    padding-block: var(--space-8) var(--space-6);
   }
 
   .footer-grid {
     display: grid;
-    gap: 36px;
+    gap: var(--space-7);
     grid-template-columns: 1fr;
-    margin-bottom: 48px;
+    margin-bottom: var(--space-8);
   }
 
   @media (min-width: 768px) {
@@ -131,38 +131,30 @@ const projectLinks = [
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
   }
 
   .brand-logo {
-    border-radius: 8px;
+    border-radius: 7px;
   }
 
   .brand-name {
-    font-size: 17px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
   }
 
   .footer-tagline {
-    font-size: 14px;
     color: var(--text-muted);
-    margin-bottom: 20px;
-    max-width: 30em;
-  }
-
-  .btn-sm {
-    padding: 8px 18px;
-    font-size: 14px;
+    margin-bottom: var(--space-5);
+    max-width: 32em;
   }
 
   .footer-heading {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    display: block;
     text-transform: uppercase;
-    color: var(--text-faint);
-    margin-bottom: 16px;
+    margin-bottom: var(--space-4);
   }
 
   .footer-links {
@@ -171,13 +163,13 @@ const projectLinks = [
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-2);
   }
 
   .footer-links a {
-    font-size: 14.5px;
+    font-size: 14px;
     color: var(--text-muted);
-    transition: color 0.15s ease;
+    transition: color 0.2s ease;
   }
 
   .footer-links a:hover {
@@ -185,11 +177,11 @@ const projectLinks = [
   }
 
   .footer-bottom {
-    border-top: 1px solid var(--border);
-    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: var(--space-5);
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: var(--space-3);
   }
 
   @media (min-width: 768px) {
@@ -203,7 +195,7 @@ const projectLinks = [
   .footer-disclaimer {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: var(--space-2);
     font-size: 12.5px;
     line-height: 1.7;
     color: var(--text-faint);
@@ -219,7 +211,7 @@ const projectLinks = [
   .footer-meta {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-2);
     font-size: 12.5px;
     color: var(--text-faint);
     white-space: nowrap;
@@ -238,10 +230,10 @@ const projectLinks = [
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 18px;
-    padding-top: 18px;
-    border-top: 1px solid var(--border);
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
   }
 
   .beian-link {
@@ -250,7 +242,7 @@ const projectLinks = [
     gap: 6px;
     font-size: 12.5px;
     color: var(--text-faint);
-    transition: color 0.15s ease;
+    transition: color 0.2s ease;
   }
 
   .beian-link:hover {

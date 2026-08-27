@@ -1,0 +1,118 @@
+---
+/**
+ * 设计理念区（对齐 Harness 官网 "Design approach"）：
+ * 左侧文案条目，可选配图；条目之间以分隔线区隔。
+ */
+import type { Dict } from '../i18n/content';
+
+interface Props {
+  dict: Dict;
+}
+
+const { dict } = Astro.props;
+const a = dict.approach;
+---
+
+<section class="section approach" id="approach">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span>{a.eyebrow}</span></span>
+      <h2 class="t-h1 section-title approach-title">{a.title}</h2>
+    </div>
+
+    <div class="approach-list">
+      {a.items.map((item, i) => (
+        <article class:list={['approach-item', 'reveal', item.image && 'approach-item--media']}>
+          <div class="approach-copy">
+            <span class="t-mono-label approach-index">{String(i + 1).padStart(2, '0')}</span>
+            <h3 class="t-subtitle approach-item-title">{item.title}</h3>
+            <p class="t-body text-muted approach-desc">{item.desc}</p>
+          </div>
+
+          {item.image && (
+            <figure class="approach-figure">
+              <img
+                src={item.image}
+                alt={item.imageAlt ?? ''}
+                width="1400"
+                height="789"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+          )}
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .approach-title {
+    max-width: 680px;
+    margin-bottom: 0;
+  }
+
+  .approach-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin-top: var(--space-9);
+  }
+
+  .approach-item {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .approach-item:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  @media (min-width: 900px) {
+    .approach-item--media {
+      grid-template-columns: minmax(0, 44fr) minmax(0, 56fr);
+      align-items: center;
+      gap: var(--space-8);
+    }
+  }
+
+  .approach-copy {
+    max-width: 720px;
+  }
+
+  .approach-index {
+    display: block;
+    margin-bottom: var(--space-3);
+  }
+
+  .approach-item-title {
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: var(--space-3);
+  }
+
+  .approach-desc {
+    line-height: 1.7;
+  }
+
+  .approach-figure {
+    margin: 0;
+    border-radius: var(--radius-media);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+    background: #fff;
+    box-shadow:
+      0 24px 64px -28px rgba(0, 0, 0, 0.75),
+      0 0 72px -28px rgba(var(--rgb-brand), 0.2);
+  }
+
+  .approach-figure img {
+    width: 100%;
+    height: auto;
+  }
+</style>

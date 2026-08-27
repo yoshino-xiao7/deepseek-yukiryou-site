@@ -1,6 +1,6 @@
 ---
 /**
- * 工作原理：运行时链路 + 安全要点
+ * 工作原理：运行时链路（等宽节点卡）+ 安全要点
  */
 import Icon from './Icon.astro';
 import { type Dict } from '../i18n/content';
@@ -15,29 +15,28 @@ const { dict } = Astro.props;
 <section class="section" id="how">
   <div class="container">
     <div class="section-head section-head--center reveal">
-      <span class="eyebrow">{dict.how.eyebrow}</span>
-      <h2 class="section-title">{dict.how.title}</h2>
-      <p class="section-sub">{dict.how.subtitle}</p>
+      <span class="eyebrow"><span>{dict.how.eyebrow}</span></span>
+      <h2 class="t-h1">{dict.how.title}</h2>
+      <p class="t-body section-sub">{dict.how.subtitle}</p>
     </div>
 
-    <ol class="flow">
+    <ol class="flow reveal">
       {dict.how.steps.map((step, i) => (
-        <li class="flow-step reveal" style={`--d: ${i * 50}ms`}>
-          <span class="flow-index">{i + 1}</span>
+        <li class="flow-step">
+          <span class="t-mono-label flow-index">{String(i + 1).padStart(2, '0')}</span>
           <div class="flow-body">
             <h3 class="flow-title">{step.title}</h3>
-            <p class="flow-desc">{step.desc}</p>
+            <p class="t-caption text-muted flow-desc">{step.desc}</p>
           </div>
-          {i < dict.how.steps.length - 1 && <Icon name="arrow-right" size={16} class="flow-arrow" />}
         </li>
       ))}
     </ol>
 
-    <ul class="flow-notes">
+    <ul class="flow-notes reveal">
       {dict.how.notes.map((n) => (
         <li class="flow-note">
           <Icon name="lock" size={14} />
-          {n}
+          <span class="t-caption">{n}</span>
         </li>
       ))}
     </ul>
@@ -47,102 +46,80 @@ const { dict } = Astro.props;
 <style>
   .flow {
     list-style: none;
-    margin: 0 0 28px;
+    margin: var(--space-8) 0 var(--space-6);
     padding: 0;
     display: grid;
-    gap: 12px;
+    gap: var(--space-3);
     grid-template-columns: 1fr;
   }
 
-  @media (min-width: 768px) {
+  @media (min-width: 640px) {
     .flow {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .flow {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-4);
     }
   }
 
   .flow-step {
-    position: relative;
     display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    background: var(--bg-card);
+    flex-direction: column;
+    gap: var(--space-3);
+    background: var(--surface-4);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
+    border-radius: var(--radius-media);
+    padding: var(--space-5);
+    transition: border-color 0.3s ease;
+  }
+
+  .flow-step:hover {
+    border-color: var(--border-hover);
   }
 
   .flow-index {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-    background: var(--accent-soft);
-    border: 1px solid var(--accent-border);
-    color: var(--accent-hover);
-    font-size: 13px;
-    font-weight: 700;
-    font-family: var(--font-mono);
+    color: var(--brand);
   }
 
   .flow-title {
-    font-size: 15px;
-    font-weight: 650;
-    margin-bottom: 4px;
     font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 400;
     letter-spacing: -0.01em;
+    margin-bottom: var(--space-2);
+    word-break: break-word;
   }
 
   .flow-desc {
-    font-size: 13px;
     line-height: 1.6;
-    color: var(--text-muted);
-  }
-
-  .flow-arrow {
-    display: none;
-  }
-
-  @media (min-width: 1280px) {
-    .flow-arrow {
-      display: block;
-      position: absolute;
-      right: -18px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 2;
-      color: var(--accent);
-      background: var(--bg);
-      border-radius: 50%;
-      padding: 2px;
-    }
   }
 
   .flow-notes {
     list-style: none;
     margin: 0;
-    padding: 20px 0 0;
-    border-top: 1px solid var(--border);
+    padding: var(--space-5) 0 0;
+    border-top: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-3);
   }
 
   @media (min-width: 768px) {
     .flow-notes {
       flex-direction: row;
       flex-wrap: wrap;
-      gap: 12px 28px;
+      gap: var(--space-3) var(--space-6);
     }
   }
 
   .flow-note {
     display: inline-flex;
     align-items: flex-start;
-    gap: 8px;
-    font-size: 13.5px;
+    gap: var(--space-2);
     color: var(--text-muted);
   }
 

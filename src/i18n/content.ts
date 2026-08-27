@@ -71,6 +71,27 @@ export interface FeatureItem {
   icon: string;
   title: string;
   desc: string;
+  /** 卡片下方的等宽小标签（对齐 Harness 官网卡片版式），可选 */
+  mono?: string;
+}
+
+/** 概念区三卡：标题 + 等宽副标签 + 说明，可带外链 */
+export interface ConceptItem {
+  icon: string;
+  title: string;
+  mono: string;
+  desc: string;
+  href?: string;
+}
+
+/** 平台切换区的单个 Tab */
+export interface PlatformTab {
+  id: string;
+  label: string;
+  icon: string;
+  title: string;
+  desc: string;
+  points: string[];
 }
 
 export interface StepItem {
@@ -95,6 +116,7 @@ export interface Dict {
   };
   /** 导航 */
   nav: {
+    concept: string;
     features: string;
     why: string;
     how: string;
@@ -108,9 +130,13 @@ export interface Dict {
   /** Hero */
   hero: {
     badge: string;
+    /** Hero 上方一行说明（对齐 Harness 官网的 preview label） */
+    kicker: string;
     title: string;
     titleAccent: string;
     subtitle: string;
+    /** Hero 副文案第二段 */
+    subtitle2: string;
     ctaPrimary: string;
     ctaSecondary: string;
     disclaimer: string;
@@ -118,6 +144,39 @@ export interface Dict {
     versionLabel: string;
     shotAlt: string;
     shotCaption: string;
+    /** 终端卡片：双 Tab（安装 / 启动）与复制按钮 */
+    terminal: {
+      tabs: [string, string];
+      cmds: [string, string];
+      copy: string;
+      copied: string;
+    };
+  };
+  /** 概念区：Agent = Model + Harness */
+  concept: {
+    eyebrow: string;
+    titleLead: string;
+    titleRest: string;
+    lines: string[];
+    items: ConceptItem[];
+  };
+  /** 设计理念（左文右图，两条大图文） */
+  approach: {
+    eyebrow: string;
+    title: string;
+    items: Array<{
+      title: string;
+      desc: string;
+      image?: string;
+      imageAlt?: string;
+    }>;
+  };
+  /** 平台切换区（Tabs） */
+  platforms: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    tabs: PlatformTab[];
   };
   /** 功能特性 */
   features: {
@@ -223,6 +282,7 @@ export const t: Record<Lang, Dict> = {
       ogTitle: 'DeepSeek YukiRyou — DeepSeek Harness Desktop for macOS & Windows',
     },
     nav: {
+      concept: '理念',
       features: '功能',
       why: '为什么选择',
       how: '工作原理',
@@ -235,20 +295,114 @@ export const t: Record<Lang, Dict> = {
     },
     hero: {
       badge: 'macOS & Windows Beta',
-      title: '让 DeepSeek Harness',
-      titleAccent: '真正像一个原生桌面应用',
+      kicker: 'DeepSeek Harness 桌面版 · 社区项目',
+      title: '不用配环境的',
+      titleAccent: 'Harness 桌面版',
       subtitle:
-        '面向 macOS 与 Windows 的独立桌面工作台：内置运行时、账户余额、工作区审阅、文件预览、社区插件市场与可信更新，打开即可工作。',
+        'DeepSeek YukiRyou 把 DeepSeek Harness 封装成一个可安装的桌面应用，内置固定版本运行时，双击即可开始工作。',
+      subtitle2:
+        '账户余额、工作区审阅、Git 变更、文件预览、社区插件市场与可信更新，全部收在一个原生窗口里。',
       ctaPrimary: '下载应用',
       ctaSecondary: '在 GitHub 上查看',
       disclaimer: '社区开源项目，非 DeepSeek 官方产品',
       requirements: ['macOS 14+（Apple Silicon）', 'Windows 11 x64（Beta）', 'MIT License'],
       versionLabel: '最新版本',
       shotAlt: 'DeepSeek YukiRyou 应用截图：原生窗口中的 Harness 工作台',
-      shotCaption: 'DeepSeek YukiRyou · 原生 macOS 窗口中的 Harness 工作台',
+      shotCaption: 'DeepSeek YukiRyou · 原生窗口中的 Harness 工作台',
+      terminal: {
+        tabs: ['校验（macOS）', '校验（Windows）'],
+        cmds: [
+          'shasum -a 256 DeepSeek.YukiRyou-*-arm64.dmg',
+          'Get-FileHash .\\DeepSeek.YukiRyou-*-Setup.exe -Algorithm SHA256',
+        ],
+        copy: '复制',
+        copied: '已复制',
+      },
+    },
+    concept: {
+      eyebrow: 'Harness = Runtime + Desktop',
+      titleLead: '桌面壳',
+      titleRest: '让 Harness 稳定运行在你的电脑上',
+      lines: [
+        'Harness 是 Agent 的躯体。',
+        '桌面壳负责把这个躯体装进操作系统：管好运行时、进程、窗口与更新。',
+      ],
+      items: [
+        {
+          icon: 'rocket',
+          title: '固定版本运行时',
+          mono: 'PINNED RUNTIME',
+          desc: '应用自带经过校验的 Node.js、pnpm 与 DeepSeek Harness，不读取全局环境，首次启动无需联网装依赖。',
+        },
+        {
+          icon: 'mac',
+          title: '原生桌面外壳',
+          mono: 'NATIVE SHELL',
+          desc: 'Electron 主进程负责原生窗口、交通灯、托盘与更新；单实例运行，关窗即隐藏，退出回收自己拉起的进程。',
+        },
+        {
+          icon: 'shield',
+          title: '隔离的回环边界',
+          mono: 'LOOPBACK ONLY',
+          desc: 'Harness 只监听应用持久选择的稳定 127.0.0.1 回环地址，不向局域网暴露；网页跑在关闭 Node 集成、启用上下文隔离与沙盒的独立视图中。',
+        },
+      ],
+    },
+    approach: {
+      eyebrow: 'Design approach',
+      title: '打开即用，每次发布都可验证。',
+      items: [
+        {
+          title: '打开即用',
+          desc: '不需要准备 Node、不需要记启动命令、不需要管端口。应用携带固定版本的运行时与 Harness 作为一个原子发布单元，双击图标即进入工作台；Harness 与本地界面异常时分别恢复，一个区域的故障不会拖垮整个窗口。',
+          image: '/app-screenshot.png',
+          imageAlt: 'DeepSeek YukiRyou 主界面：原生窗口中的 Harness 工作台',
+        },
+        {
+          title: '每次变更都可审阅',
+          desc: '文件树、相对 HEAD 的 Git 变更、增删行统计与只读 diff 都在应用内：支持搜索、筛选、顺序审阅与预览内查找，文件与代码行可直接拖入对话。每一轮确认的变更展示在产物行下方，点击即进入对应文件审核。',
+        },
+        {
+          title: '发布链路可核验',
+          desc: 'macOS 公开包经过 Developer ID 签名、Apple 公证、全新环境安装与真实应用稳定性验证，并附带 SHA-256 校验文件。插件安装前核验目录来源、npm 精确身份、依赖图、SHA-512 与官方 tarball，不降低安全要求。',
+        },
+      ],
+    },
+    platforms: {
+      eyebrow: 'Get started',
+      title: '选择你的平台',
+      subtitle: '同一个 Release 同时交付 macOS 与 Windows 产物，来自同一提交、携带同一固定运行时。',
+      tabs: [
+        {
+          id: 'mac',
+          label: 'macOS',
+          icon: 'apple',
+          title: 'macOS 14+（Apple Silicon）',
+          desc: '公开版经 Developer ID 签名与 Apple 公证，下载 DMG 拖入「应用程序」即可。',
+          points: [
+            'DMG 安装版，或 ZIP 直接解压运行',
+            '原生交通灯、可拖动顶栏、侧栏自适应停靠',
+            '浅色 / 深色 / 跟随系统主题同步生效',
+            '应用内检查更新，下载完成后由你确认重启安装',
+          ],
+        },
+        {
+          id: 'win',
+          label: 'Windows',
+          icon: 'windows',
+          title: 'Windows 11 x64（Beta）',
+          desc: '提供 NSIS 安装包与免安装便携版；当前产物未经 Authenticode 签名，安装前请核对 SHA-256。',
+          points: [
+            'Setup.exe 安装版，或便携 ZIP 解压即用',
+            '平台化运行时与 ConPTY 终端支持',
+            '与 macOS 同版本、同提交交付',
+            '首次运行可能出现 SmartScreen 提示',
+          ],
+        },
+      ],
     },
     features: {
-      eyebrow: '功能特性',
+      eyebrow: 'Capabilities',
       title: '把 Harness 收进一个可安装的 Mac 应用',
       subtitle:
         '不是 Harness 的重写，也不改变 Agent 的工作方式——专注把 Harness 稳定、安全、可恢复地交付到桌面。',
@@ -256,67 +410,79 @@ export const t: Record<Lang, Dict> = {
         {
           icon: 'rocket',
           title: '打开即用',
+          mono: 'OPEN AND RUN',
           desc: '内置固定版本的 Node.js、pnpm 与 DeepSeek Harness，不读取全局环境，首次启动也无需联网安装依赖。',
         },
         {
           icon: 'mac',
           title: '原生体验',
+          mono: 'NATIVE EXPERIENCE',
           desc: '原生交通灯、可拖动顶栏，侧栏窄窗口覆盖、宽窗口停靠；浅色、深色与跟随系统主题同步生效，与 Harness 视觉融为一体。',
         },
         {
           icon: 'wallet',
           title: '账户余额',
+          mono: 'ACCOUNT BALANCE',
           desc: '在设置上方直接查看当前 DeepSeek 凭据所属账户的余额，一眼掌握用量。',
         },
         {
           icon: 'git',
           title: '工作区审阅',
+          mono: 'WORKSPACE REVIEW',
           desc: '文件树、相对 HEAD 的 Git 变更、增删行统计与只读 diff；支持搜索、筛选、顺序审阅与预览内查找，文件与代码行可拖入对话。',
         },
         {
           icon: 'file',
           title: '适合阅读的预览',
+          mono: 'READABLE PREVIEW',
           desc: 'Markdown 可在排版与源码之间切换，纯文本与常见图片也能在应用内直接预览。',
         },
         {
           icon: 'list',
           title: '逐轮变更入口',
+          mono: 'PER-TURN CHANGES',
           desc: '在 Harness 原生“产物”行下方展示本轮确认变更，点击即可进入对应文件审核。',
         },
         {
           icon: 'heart',
           title: '安静的生命周期',
+          mono: 'QUIET LIFECYCLE',
           desc: '单实例运行，关闭窗口可隐藏；Harness 与本地界面异常时分别恢复，不让一个区域的故障拖垮整个窗口。',
         },
         {
           icon: 'shield',
           title: '可信更新',
+          mono: 'TRUSTED UPDATES',
           desc: 'Developer ID 签名、Apple 公证、SHA-256 校验与应用内检查更新，下载完成后由你确认重启安装。',
         },
         {
           icon: 'plugin',
           title: '社区插件市场',
+          mono: 'PLUGIN MARKETPLACE',
           desc: '完整目录索引、搜索、分类、分页与来源管理；安装前安全预检，明确目录来源与本机状态。',
         },
         {
           icon: 'check',
           title: '受管插件生命周期',
+          mono: 'MANAGED LIFECYCLE',
           desc: '安装、更新、重装、启用、停用、回滚与安全卸载；失败自动恢复旧版本，并阻断已知坏版本。',
         },
         {
           icon: 'windows',
           title: 'Windows 11 支持',
-          desc: '新增平台化运行时、ConPTY 与 Squirrel 安装包；同一版本在 macOS 与 Windows 双平台交付。',
+          mono: 'WINDOWS 11',
+          desc: '新增平台化运行时、ConPTY 与 NSIS 安装包；同一版本在 macOS 与 Windows 双平台交付。',
         },
         {
           icon: 'file',
           title: 'Windows 便携版',
+          mono: 'PORTABLE BUILD',
           desc: '便携 ZIP 解压即可直接运行，免安装；与安装版来自同一提交、携带同一固定运行时。',
         },
       ],
     },
     why: {
-      eyebrow: '为什么选择 YukiRyou',
+      eyebrow: 'Why YukiRyou',
       title: '官方 Web UI 之外的桌面能力',
       subtitle:
         '官方 DeepSeek Harness 提供 Web UI，但日常使用仍需要准备运行环境、启动命令、管理端口和处理异常退出。YukiRyou 把这些收进一个应用。',
@@ -352,7 +518,7 @@ export const t: Record<Lang, Dict> = {
       },
     },
     how: {
-      eyebrow: '它如何运行',
+      eyebrow: 'Architecture',
       title: '稳定、隔离、可恢复',
       subtitle: 'Harness 运行在应用内置的固定版本运行时中，只对本地可见。',
       steps: [
@@ -370,7 +536,7 @@ export const t: Record<Lang, Dict> = {
       ],
     },
     install: {
-      eyebrow: '下载与安装',
+      eyebrow: 'Install',
       title: '三步开始工作',
       subtitle: '从 GitHub Releases 下载对应平台的安装包：macOS 拖入“应用程序”，Windows 运行安装程序（或使用便携版）。',
       steps: [
@@ -397,7 +563,7 @@ export const t: Record<Lang, Dict> = {
       cta: '前往 Releases 下载',
     },
     roadmap: {
-      eyebrow: '路线图',
+      eyebrow: 'Roadmap',
       title: '下一步',
       subtitle: '路线图表示产品方向，不承诺具体发布日期；安全模型或上游接口准备不足时，功能会继续保持不可用。',
       items: [
@@ -423,7 +589,7 @@ export const t: Record<Lang, Dict> = {
       note: '产品方向不代表承诺：不会通过不稳定的 DOM 注入或降低系统安全要求来提前上线功能。',
     },
     security: {
-      eyebrow: '安全与隐私',
+      eyebrow: 'Security & privacy',
       title: '边界清晰，开箱可信',
       subtitle: '从网络边界、渲染隔离到发布供应链，每一层都有明确的安全设计。',
       items: [
@@ -455,7 +621,7 @@ export const t: Record<Lang, Dict> = {
       ],
     },
     faq: {
-      eyebrow: '常见问题',
+      eyebrow: 'FAQ',
       title: 'FAQ',
       subtitle: '更多问题可以在 GitHub Issues 中找到答案。',
       items: [
@@ -501,7 +667,7 @@ export const t: Record<Lang, Dict> = {
       subtitle:
         '下载应用，让 DeepSeek Harness 像原生桌面应用一样工作。如果这个项目对你有帮助，欢迎点一个 Star。',
       download: '下载应用',
-      star: '⭐ Star 支持',
+      star: 'Star 支持',
       feedback: '反馈问题',
     },
     download: {
@@ -534,6 +700,7 @@ export const t: Record<Lang, Dict> = {
       ogTitle: 'DeepSeek YukiRyou — DeepSeek Harness Desktop for macOS & Windows',
     },
     nav: {
+      concept: 'Approach',
       features: 'Features',
       why: 'Why YukiRyou',
       how: 'How it works',
@@ -546,17 +713,112 @@ export const t: Record<Lang, Dict> = {
     },
     hero: {
       badge: 'macOS & Windows Beta',
-      title: 'Make DeepSeek Harness',
-      titleAccent: 'feel like a native desktop app',
+      kicker: 'DeepSeek Harness Desktop · a community project',
+      title: 'Everything you need,',
+      titleAccent: 'already installed.',
       subtitle:
-        'A standalone desktop workbench for macOS and Windows: bundled runtime, account balance, workspace review, file preview, plugin marketplace, and trusted updates. Open and run.',
+        'DeepSeek YukiRyou packages DeepSeek Harness into an installable desktop app with a pinned runtime inside — double-click and start working.',
+      subtitle2:
+        'Account balance, workspace review, Git changes, file previews, a community plugin marketplace, and trusted updates, all in one native window.',
       ctaPrimary: 'Download App',
       ctaSecondary: 'View on GitHub',
       disclaimer: 'An open-source community project, not an official DeepSeek product',
       requirements: ['macOS 14+ (Apple Silicon)', 'Windows 11 x64 (Beta)', 'MIT License'],
       versionLabel: 'Latest release',
       shotAlt: 'Screenshot of DeepSeek YukiRyou: the Harness workbench in a native window',
-      shotCaption: 'DeepSeek YukiRyou · Harness workbench in a native macOS window',
+      shotCaption: 'DeepSeek YukiRyou · Harness workbench in a native window',
+      terminal: {
+        tabs: ['Verify (macOS)', 'Verify (Windows)'],
+        cmds: [
+          'shasum -a 256 DeepSeek.YukiRyou-*-arm64.dmg',
+          'Get-FileHash .\\DeepSeek.YukiRyou-*-Setup.exe -Algorithm SHA256',
+        ],
+        copy: 'Copy',
+        copied: 'Copied',
+      },
+    },
+    concept: {
+      eyebrow: 'Harness = Runtime + Desktop',
+      titleLead: 'A desktop shell',
+      titleRest: 'that keeps Harness running on your machine',
+      lines: [
+        'Harness is the body of an agent.',
+        'The desktop shell fits that body into your operating system: runtime, processes, windows, and updates.',
+      ],
+      items: [
+        {
+          icon: 'rocket',
+          title: 'Pinned runtime',
+          mono: 'PINNED RUNTIME',
+          desc: 'The app bundles verified Node.js, pnpm, and DeepSeek Harness. It ignores your global environment and never downloads dependencies on first run.',
+        },
+        {
+          icon: 'mac',
+          title: 'Native shell',
+          mono: 'NATIVE SHELL',
+          desc: 'The Electron main process owns the native window, traffic lights, tray, and updates. Single instance, hide on close, and it reclaims every process it started.',
+        },
+        {
+          icon: 'shield',
+          title: 'Loopback boundary',
+          mono: 'LOOPBACK ONLY',
+          desc: 'Harness listens only on a stable 127.0.0.1 loopback origin the app persists, never exposed to the LAN, and web content runs in a sandboxed view with Node integration off and context isolation on.',
+        },
+      ],
+    },
+    approach: {
+      eyebrow: 'Design approach',
+      title: 'Open and run. Every release verifiable.',
+      items: [
+        {
+          title: 'Open and run',
+          desc: 'No Node to prepare, no launch command to remember, no ports to juggle. The app ships a pinned runtime and Harness as one atomic release unit — double-click the icon and the workbench is there. Harness and the local UI recover independently, so one failure never takes down the window.',
+          image: '/app-screenshot.png',
+          imageAlt: 'DeepSeek YukiRyou main window: the Harness workbench in a native window',
+        },
+        {
+          title: 'Every change reviewable',
+          desc: 'File tree, Git changes vs HEAD, line stats, and read-only diff all live in the app: search, filter, ordered review, in-preview find, and drag files or lines straight into chat. Each turn\u2019s confirmed changes appear below the outputs row \u2014 one click opens the file for review.',
+        },
+        {
+          title: 'A verifiable release chain',
+          desc: 'Public macOS packages are Developer ID signed, Apple notarized, installed on clean machines, and stability-tested, with SHA-256 checksums attached. Before installing a plugin the app verifies catalog source, exact npm identity, dependency graph, SHA-512, and official tarballs \u2014 without lowering security requirements.',
+        },
+      ],
+    },
+    platforms: {
+      eyebrow: 'Get started',
+      title: 'Pick your platform',
+      subtitle:
+        'One Release ships both macOS and Windows artifacts \u2014 same commit, same pinned runtime.',
+      tabs: [
+        {
+          id: 'mac',
+          label: 'macOS',
+          icon: 'apple',
+          title: 'macOS 14+ (Apple Silicon)',
+          desc: 'Public builds are Developer ID signed and Apple notarized. Download the DMG and drag it into Applications.',
+          points: [
+            'DMG installer, or a ZIP you can unzip and run',
+            'Native traffic lights, draggable title bar, adaptive sidebar',
+            'Light, dark, and system themes stay in sync',
+            'In-app update checks; you confirm before restarting to install',
+          ],
+        },
+        {
+          id: 'win',
+          label: 'Windows',
+          icon: 'windows',
+          title: 'Windows 11 x64 (Beta)',
+          desc: 'An NSIS installer plus an install-free portable build. Builds are not Authenticode signed, so verify SHA-256 first.',
+          points: [
+            'Setup.exe installer, or a portable ZIP',
+            'Platform runtime with ConPTY terminal support',
+            'Same version and same commit as macOS',
+            'SmartScreen may warn on first run',
+          ],
+        },
+      ],
     },
     features: {
       eyebrow: 'Features',
@@ -567,61 +829,73 @@ export const t: Record<Lang, Dict> = {
         {
           icon: 'rocket',
           title: 'Open and run',
+          mono: 'OPEN AND RUN',
           desc: 'Ships with pinned Node.js, pnpm, and DeepSeek Harness. Ignores your global environment, and no first-run dependency downloads.',
         },
         {
           icon: 'mac',
           title: 'Native experience',
+          mono: 'NATIVE EXPERIENCE',
           desc: 'Native traffic lights, a draggable title bar, and a sidebar that overlays in narrow windows and docks when wide. Light, dark, and system themes stay in sync.',
         },
         {
           icon: 'wallet',
           title: 'Account balance',
+          mono: 'ACCOUNT BALANCE',
           desc: 'See the balance of the DeepSeek account behind your credentials, right above Settings.',
         },
         {
           icon: 'git',
           title: 'Workspace review',
+          mono: 'WORKSPACE REVIEW',
           desc: 'File tree, Git changes vs HEAD, line stats, and read-only diff — with search, filtering, ordered review, in-preview find, and drag files or lines into chat.',
         },
         {
           icon: 'file',
           title: 'Readable previews',
+          mono: 'READABLE PREVIEW',
           desc: 'Toggle Markdown between rendered and source views; preview plain text and common images right in the app.',
         },
         {
           icon: 'list',
           title: 'Per-turn changes',
+          mono: 'PER-TURN CHANGES',
           desc: 'Confirmed changes for each turn appear below native Harness outputs — one click opens the file for review.',
         },
         {
           icon: 'heart',
           title: 'Quiet lifecycle',
+          mono: 'QUIET LIFECYCLE',
           desc: 'Single instance; hide instead of quit. Harness and the local UI recover independently, so one failure never takes down the window.',
         },
         {
           icon: 'shield',
           title: 'Trusted updates',
+          mono: 'TRUSTED UPDATES',
           desc: 'Developer ID signed, Apple notarized, SHA-256 verified, with in-app update checks. You confirm before restarting to install.',
         },
         {
           icon: 'plugin',
           title: 'Community plugin marketplace',
+          mono: 'PLUGIN MARKETPLACE',
           desc: 'Full catalog indexing, search, categories, paging, and source management — with a security pre-check before install.',
         },
         {
           icon: 'check',
           title: 'Managed plugin lifecycle',
+          mono: 'MANAGED LIFECYCLE',
           desc: 'Install, update, reinstall, enable, disable, rollback, and safe removal. Failures auto-restore the previous version and block known-bad builds.',
         },
         {
           icon: 'windows',
           title: 'Windows 11 support',
-          desc: 'Platform runtime, ConPTY, and Squirrel installer — the same release ships for both macOS and Windows.',
+          mono: 'WINDOWS 11',
+          desc: 'Platform runtime, ConPTY, and NSIS installer — the same release ships for both macOS and Windows.',
         },
         {
           icon: 'file',
           title: 'Windows portable build',
+          mono: 'PORTABLE BUILD',
           desc: 'Unzip the portable ZIP and run directly — no install. Built from the same commit with the same pinned runtime.',
         },
       ],
@@ -813,7 +1087,7 @@ export const t: Record<Lang, Dict> = {
       subtitle:
         'Download the app and let DeepSeek Harness work like a native desktop app. If this project helps you, give it a star.',
       download: 'Download App',
-      star: '⭐ Star us',
+      star: 'Star us',
       feedback: 'Report an issue',
     },
     download: {

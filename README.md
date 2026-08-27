@@ -4,12 +4,20 @@
 
 - 线上地址：<https://deepseek.yukiryou.icu>
 - 技术栈：[Astro](https://astro.build)（静态站点）+ [@astrojs/sitemap](https://docs.astro.build/en/guides/integrations-guide/sitemap/)
+- 视觉：对齐 [DeepSeek Harness 官网](https://www.deepseek.com/harness/) 的设计令牌（深色 `#0a0a0a`、DS 间距/圆角标尺、白底 pill 主按钮、等宽 eyebrow 标签），字体自托管（DM Sans / Montserrat / Fragment Mono）
 - 语言：简体中文（默认，挂 `/`）+ English（挂 `/en/`）
 - 部署：腾讯 EdgeOne 静态托管，`dist/` 目录直接上传
 
 ## 本地开发
 
 要求：Node.js 20+、pnpm 10。
+
+> **macOS 注意**：若 `pnpm build` 报 `Cannot find native binding` / `different Team IDs`，说明当前 PATH 上的 `node` 是某个已签名 App 内置的运行时，它拒绝加载第三方原生模块（rolldown）。改用系统或 nvm 的 node 即可：
+>
+> ```bash
+> export PATH="$HOME/.nvm/versions/node/v22.22.2/bin:$PATH"
+> pnpm build
+> ```
 
 ```bash
 pnpm install        # 安装依赖
@@ -33,15 +41,20 @@ pnpm assets         # 重新生成图标与 OG 封面图（需要 sips 与 Pillo
 │   ├── prepare-assets.mjs    # 素材准备：图标缩放 + OG 图生成
 │   └── og_cover.py           # OG 封面绘制（Pillow，1200x630）
 ├── public/                   # 静态资源（图标、OG 图、robots.txt、manifest、downloads.json）
+│   └── fonts/                # 自托管字体：DM Sans / Montserrat / Fragment Mono（woff2）
 └── src/
     ├── i18n/content.ts       # 全站中英双语内容字典（改文案主要改这里）
     ├── scripts/downloads.ts  # 下载中心客户端逻辑（实时代理 > 内联配置 > 同域静态）
     ├── layouts/Base.astro    # 基础布局：完整 SEO head（canonical/hreflang/OG/JSON-LD）
     ├── components/           # 页面区块组件
+    │   ├── Hero.astro        # 首屏：两栏 + 带 Tab 的终端卡（可复制命令）
+    │   ├── Concept.astro     # 概念区：eyebrow + 三张等宽标签卡
+    │   ├── Approach.astro    # 设计理念：条目式左文右图
+    │   └── Platforms.astro   # 平台切换：macOS / Windows 两个 Tab
     ├── pages/index.astro     # 简体中文首页（/）
     ├── pages/en/index.astro  # English 首页（/en/）
     ├── pages/404.astro       # 404 页（按浏览器语言切换文案）
-    └── styles/global.css     # 设计系统（设计变量 + 基础样式）
+    └── styles/global.css     # 设计系统（DS 设计令牌 + @font-face + 文字/按钮/卡片标尺）
 ```
 
 ## SEO 已内置
@@ -105,6 +118,7 @@ CLI 详情见 [EdgeOne CLI 文档](https://cdn.jsdelivr.net/npm/edgeone@latest/R
 | `astro.config.mjs` 中 `site` | 若域名变更，同步修改 canonical/sitemap |
 | `scripts/prepare-assets.mjs` 中 `ICON_URL` | 图标源地址 |
 | `public/og-cover.png` | 品牌视觉更新时重新生成（`pnpm assets`） |
+| `public/fonts/*.woff2` | 自托管字体，仅在更换字体族时替换；`global.css` 中同步 `@font-face` 与 `Base.astro` 的 preload |
 | 下载链接 | 由 `Download.astro` + `downloads.ts` + Edge Function `/api/downloads` 统一管理：实时读取清单直链（DMG / macOS ZIP / Windows Setup / 便携版），不可用时回退 GitHub Releases |
 
 ## 免责声明

@@ -1,6 +1,6 @@
 ---
 /**
- * 安全与隐私：四张卡片
+ * 安全与隐私：卡片网格
  */
 import Icon from './Icon.astro';
 import { type Dict } from '../i18n/content';
@@ -12,22 +12,22 @@ interface Props {
 const { dict } = Astro.props;
 ---
 
-<section class="section section-alt" id="security">
+<section class="section" id="security">
   <div class="container">
     <div class="section-head reveal">
-      <span class="eyebrow">{dict.security.eyebrow}</span>
-      <h2 class="section-title">{dict.security.title}</h2>
-      <p class="section-sub">{dict.security.subtitle}</p>
+      <span class="eyebrow"><span>{dict.security.eyebrow}</span></span>
+      <h2 class="t-h1 section-title">{dict.security.title}</h2>
+      <p class="t-body section-sub">{dict.security.subtitle}</p>
     </div>
 
-    <div class="security-grid">
-      {dict.security.items.map((item, i) => (
-        <article class="security-card reveal" style={`--d: ${i * 50}ms`}>
-          <span class="security-icon">
-            <Icon name={item.icon} size={20} />
-          </span>
-          <h3 class="security-title">{item.title}</h3>
-          <p class="security-desc">{item.desc}</p>
+    <div class="security-grid reveal">
+      {dict.security.items.map((item) => (
+        <article class="card security-card">
+          <div class="security-icon">
+            <Icon name={item.icon} size={22} strokeWidth={1.5} />
+          </div>
+          <h3 class="t-title security-title">{item.title}</h3>
+          <p class="t-caption text-muted security-desc">{item.desc}</p>
         </article>
       ))}
     </div>
@@ -35,62 +35,42 @@ const { dict } = Astro.props;
 </section>
 
 <style>
-  .section-alt {
-    background:
-      radial-gradient(
-        50% 60% at 50% 0%,
-        rgba(77, 107, 254, 0.07),
-        transparent 70%
-      );
-  }
-
   .security-grid {
     display: grid;
-    gap: 16px;
+    gap: var(--space-4);
     grid-template-columns: 1fr;
+    margin-top: var(--space-8);
   }
 
   @media (min-width: 640px) {
     .security-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .security-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-5);
     }
   }
 
   .security-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 26px 24px;
-    transition: border-color 0.2s ease, transform 0.2s ease;
-  }
-
-  .security-card:hover {
-    border-color: var(--accent-border);
-    transform: translateY(-2px);
+    display: flex;
+    flex-direction: column;
   }
 
   .security-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: var(--accent-soft);
-    border: 1px solid var(--accent-border);
-    color: var(--accent-hover);
-    margin-bottom: 16px;
+    color: var(--text);
+    opacity: 0.7;
+    margin-bottom: var(--space-4);
   }
 
   .security-title {
-    font-size: 17px;
-    font-weight: 650;
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
   }
 
   .security-desc {
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--text-muted);
+    line-height: 1.65;
   }
 </style>

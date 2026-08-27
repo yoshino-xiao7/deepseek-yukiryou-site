@@ -1,7 +1,7 @@
 ---
 /**
- * 顶部导航：吸顶毛玻璃，桌面端完整导航 + 语言切换 + 下载按钮；
- * 移动端折叠菜单。
+ * 顶部导航：浮动 pill 胶囊条（对齐 DeepSeek Harness 官网 ds-header-bar），
+ * 滚动后浮现毛玻璃底；桌面端语言分段切换器 + 下载按钮，移动端全屏菜单。
  */
 import Icon from './Icon.astro';
 import Download from './Download.astro';
@@ -15,23 +15,21 @@ interface Props {
 const { lang, dict } = Astro.props;
 
 const navItems = [
+  { href: '#concept', label: dict.nav.concept },
   { href: '#features', label: dict.nav.features },
   { href: '#why', label: dict.nav.why },
-  { href: '#how', label: dict.nav.how },
   { href: '#install', label: dict.nav.install },
-  { href: '#roadmap', label: dict.nav.roadmap },
   { href: '#security', label: dict.nav.security },
   { href: '#faq', label: dict.nav.faq },
 ];
 
-const otherLang: Lang = lang === 'zh-CN' ? 'en' : 'zh-CN';
-const otherHref = otherLang === 'en' ? '/en/' : '/';
+const home = lang === 'zh-CN' ? '/' : '/en/';
 ---
 
-<header class="site-header">
-  <div class="container header-inner">
-    <a class="brand" href={lang === 'zh-CN' ? '/' : '/en/'} aria-label="DeepSeek YukiRyou">
-      <img class="brand-logo" src={PROJECT.icon} alt="" width="28" height="28" loading="eager" />
+<div class="header-wrapper">
+  <div class="header-bar" data-header-bar>
+    <a class="brand" href={home} aria-label="DeepSeek YukiRyou">
+      <img class="brand-logo" src={PROJECT.icon} alt="" width="26" height="26" loading="eager" />
       <span class="brand-name">DeepSeek&nbsp;YukiRyou</span>
     </a>
 
@@ -42,10 +40,13 @@ const otherHref = otherLang === 'en' ? '/en/' : '/';
     </nav>
 
     <div class="header-actions">
-      <a class="lang-switch" href={otherHref} aria-label="Switch language">
-        {lang === 'zh-CN' ? 'EN' : '中文'}
-      </a>
-      <Download dict={dict} variant="nav" />
+      <div class="locale-toggle" role="group" aria-label="Language">
+        <a class:list={['locale-item', lang === 'zh-CN' && 'is-active']} href="/">中文</a>
+        <a class:list={['locale-item', lang === 'en' && 'is-active']} href="/en/">EN</a>
+      </div>
+      <div class="header-dl">
+        <Download dict={dict} variant="nav" />
+      </div>
       <button
         class="nav-toggle"
         type="button"
@@ -54,182 +55,324 @@ const otherHref = otherLang === 'en' ? '/en/' : '/';
         aria-label="Menu"
         data-nav-toggle
       >
-        <Icon name="menu" size={22} />
+        <Icon name="menu" size={20} />
       </button>
     </div>
   </div>
+</div>
 
-  <div class="mobile-menu" id="mobile-menu" hidden data-mobile-menu>
-    <nav class="mobile-nav" aria-label="Mobile">
+<div class="mobile-menu" id="mobile-menu" data-mobile-menu>
+  <div class="mobile-menu-header">
+    <a class="brand" href={home}>
+      <img class="brand-logo" src={PROJECT.icon} alt="" width="26" height="26" />
+      <span class="brand-name">DeepSeek&nbsp;YukiRyou</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-label="Close" data-nav-close>
+      <Icon name="x" size={20} />
+    </button>
+  </div>
+
+  <div class="mobile-menu-body">
+    <nav aria-label="Mobile">
       {navItems.map((item) => (
-        <a class="mobile-link" href={item.href} data-mobile-link>{item.label}</a>
+        <a class="mobile-item" href={item.href} data-mobile-link>
+          {item.label}
+          <Icon name="arrow-right" size={16} />
+        </a>
       ))}
     </nav>
-    <div class="mobile-foot">
-      <Download dict={dict} variant="block" />
-      <a class="lang-switch" href={otherHref}>{lang === 'zh-CN' ? 'EN' : '中文'}</a>
+  </div>
+
+  <div class="mobile-menu-footer">
+    <Download dict={dict} variant="block" />
+    <div class="locale-toggle locale-toggle--block">
+      <a class:list={['locale-item', lang === 'zh-CN' && 'is-active']} href="/">中文</a>
+      <a class:list={['locale-item', lang === 'en' && 'is-active']} href="/en/">EN</a>
     </div>
   </div>
-</header>
+</div>
 
 <style>
-  .site-header {
-    position: sticky;
+  /* 浮动容器：与 .container 同宽，固定在顶部 */
+  .header-wrapper {
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
     z-index: 50;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    background: rgba(5, 7, 11, 0.72);
-    border-bottom: 1px solid var(--border);
+    width: min(100% - 48px, 1140px);
+    padding: var(--space-2) 0 0;
   }
 
-  .header-inner {
+  @media (min-width: 768px) {
+    .header-wrapper {
+      width: min(100% - 144px, 1140px);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .header-wrapper {
+      width: min(100% - 160px, 1280px);
+    }
+  }
+
+  .header-bar {
     display: flex;
     align-items: center;
-    gap: 20px;
-    height: var(--nav-h);
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin: 0 auto;
+    padding: 4px 0;
+    border-radius: var(--radius-pill);
+    position: relative;
+    border: 1px solid transparent;
+    background: transparent;
+  }
+
+  /* 滚动后浮现的毛玻璃底 */
+  .header-bar::before {
+    content: '';
+    position: absolute;
+    inset: -1px -14px;
+    border-radius: inherit;
+    background: var(--surface-raised);
+    backdrop-filter: blur(var(--blur-glass));
+    -webkit-backdrop-filter: blur(var(--blur-glass));
+    border: 1px solid var(--border);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.4s ease-in-out,
+      visibility 0s 0.4s;
+  }
+
+  .header-bar.is-scrolled::before {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 0.4s ease-in-out,
+      visibility 0s;
   }
 
   .brand {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-shrink: 0;
+    min-width: 0;
   }
 
   .brand-logo {
-    border-radius: 7px;
+    border-radius: 6px;
   }
 
   .brand-name {
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: -0.01em;
+    white-space: nowrap;
   }
 
   .nav-desktop {
     display: none;
+    position: relative;
     align-items: center;
-    gap: 4px;
-    margin-inline: auto;
+    gap: 2px;
   }
 
   .nav-link {
     padding: 7px 12px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     font-size: 14px;
     color: var(--text-muted);
-    transition: color 0.15s ease, background 0.15s ease;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease;
   }
 
   .nav-link:hover {
     color: var(--text);
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--bg-hover);
   }
 
   .header-actions {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-left: auto;
+    gap: var(--space-2);
+    flex-shrink: 0;
   }
 
-  .lang-switch {
-    padding: 7px 12px;
-    border-radius: 999px;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--text-muted);
+  /* 语言分段切换器 */
+  .locale-toggle {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 3px;
+    border-radius: var(--radius-pill);
     border: 1px solid var(--border);
-    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
   }
 
-  .lang-switch:hover {
+  .locale-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition:
+      color 0.2s,
+      background-color 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .locale-item:hover {
+    color: var(--text-secondary);
+  }
+
+  .locale-item.is-active {
+    background: var(--surface-raised);
     color: var(--text);
-    border-color: var(--border-strong);
-    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   }
 
-  .btn-sm {
-    padding: 8px 18px;
-    font-size: 14px;
+  .locale-toggle--block {
+    height: 40px;
+    justify-content: center;
+  }
+
+  .locale-toggle--block .locale-item {
+    flex: 1;
+  }
+
+  .header-dl {
+    display: none;
   }
 
   .nav-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-subtle);
     background: transparent;
     color: var(--text);
     cursor: pointer;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease;
   }
 
   .nav-toggle:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
   }
 
+  /* 移动端全屏菜单 */
   .mobile-menu {
-    padding: 8px 24px 20px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(5, 7, 11, 0.96);
-  }
-
-  .mobile-nav {
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    background: var(--bg);
     display: flex;
     flex-direction: column;
-    padding-block: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
   }
 
-  .mobile-link {
-    padding: 12px 4px;
-    font-size: 16px;
+  .mobile-menu.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px var(--space-5);
+  }
+
+  .mobile-menu-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-3) var(--space-5);
+  }
+
+  .mobile-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--border-divider);
+    font-size: 18px;
+    font-weight: 500;
     color: var(--text);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
-  .mobile-foot {
+  .mobile-item :global(svg) {
+    color: var(--text-faint);
+  }
+
+  .mobile-menu-footer {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding-top: 16px;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border-top: 1px solid var(--border-subtle);
   }
 
-  .btn-block {
-    width: 100%;
-  }
-
-  @media (min-width: 1024px) {
-    .nav-desktop {
+  /* 1280 起才切桌面导航：英文文案更长，1024 会把胶囊挤成两行 */
+  @media (min-width: 1280px) {
+    .nav-desktop,
+    .header-dl {
       display: flex;
     }
-    .nav-toggle,
-    .mobile-menu {
+    .nav-toggle {
       display: none;
     }
-    .header-actions {
-      margin-left: 0;
+    .mobile-menu {
+      display: none;
     }
   }
 </style>
 
 <script>
-  const toggle = document.querySelector('[data-nav-toggle]');
-  const menu = document.querySelector('[data-mobile-menu]') as HTMLElement | null;
-  if (toggle && menu) {
-    toggle.addEventListener('click', () => {
-      const open = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!open));
-      menu.hidden = open;
-    });
-    menu.querySelectorAll('[data-mobile-link]').forEach((a) =>
-      a.addEventListener('click', () => {
-        menu.hidden = true;
-        toggle.setAttribute('aria-expanded', 'false');
-      })
-    );
+  // 滚动后为 header 加毛玻璃底
+  const bar = document.querySelector('[data-header-bar]');
+  if (bar) {
+    const onScroll = () => {
+      bar.classList.toggle('is-scrolled', window.scrollY > 8);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
   }
+
+  // 移动端全屏菜单
+  const toggle = document.querySelector('[data-nav-toggle]');
+  const closeBtn = document.querySelector('[data-nav-close]');
+  const menu = document.querySelector('[data-mobile-menu]');
+
+  const setOpen = (open: boolean) => {
+    if (!menu || !toggle) return;
+    menu.classList.toggle('is-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+
+  toggle?.addEventListener('click', () => setOpen(true));
+  closeBtn?.addEventListener('click', () => setOpen(false));
+  menu?.querySelectorAll('[data-mobile-link]').forEach((a) =>
+    a.addEventListener('click', () => setOpen(false))
+  );
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setOpen(false);
+  });
 </script>

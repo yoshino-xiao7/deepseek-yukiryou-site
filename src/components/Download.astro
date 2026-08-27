@@ -26,12 +26,12 @@ const { dict, variant = 'lg' } = Astro.props;
 
 const sizeClass =
   variant === 'lg'
-    ? 'btn-lg'
+    ? 'btn-m'
     : variant === 'sm' || variant === 'nav'
-      ? 'btn-sm'
+      ? 'btn-s'
       : 'btn-block';
 
-const iconSize = variant === 'lg' ? 17 : 15;
+const iconSize = variant === 'lg' ? 16 : 14;
 const menuClass = variant === 'nav' ? ' dl-menu--right' : '';
 
 /** 构建时下载配置中的四个直链；缺失时回退 GitHub 最新发行页 */
@@ -88,9 +88,11 @@ const mainHref = hrefOf(macPrimary);
       data-dl-toggle
       aria-haspopup="true"
       aria-expanded="false"
+      aria-label={variant === 'nav' ? dict.download.menu : undefined}
     >
       <Icon name="list" size={iconSize} />
-      <span>{dict.download.menu}</span>
+      {/* 导航条空间紧张（英文更长），只留图标 + 箭头，文字挪到 aria-label */}
+      {variant === 'nav' ? null : <span>{dict.download.menu}</span>}
       <Icon name="chevron-down" size={13} />
     </button>
 
@@ -193,9 +195,9 @@ const mainHref = hrefOf(macPrimary);
     flex-direction: column;
     gap: 2px;
     padding: 6px;
-    background: var(--bg-card);
+    background: var(--bg-overlay);
     border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-media);
     box-shadow: 0 18px 44px -14px rgba(0, 0, 0, 0.65);
   }
 
@@ -208,15 +210,15 @@ const mainHref = hrefOf(macPrimary);
     flex-direction: column;
     gap: 3px;
     padding: 10px 12px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     font-size: 13.5px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text);
     transition: background 0.15s ease;
   }
 
   .dl-item:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--bg-hover);
   }
 
   .dl-item--github {
@@ -228,13 +230,13 @@ const mainHref = hrefOf(macPrimary);
   }
 
   .dl-item--github :global(svg) {
-    color: var(--accent-hover);
+    color: var(--brand);
   }
 
   .dl-divider {
     height: 1px;
     margin: 4px 6px;
-    background: var(--border);
+    background: var(--border-subtle);
   }
 
   .dl-item-meta {

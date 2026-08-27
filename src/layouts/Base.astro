@@ -74,7 +74,7 @@ const allJsonLd = [websiteJsonLd, softwareJsonLd, ...jsonLd];
 
     <!-- 站点验证与主题 -->
     <meta name="google-site-verification" content="eKEGiYR_MejlPuEzN7ULsbX9tjHjv6NPRrdLNhci1Ow" />
-    <meta name="theme-color" content="#05070b" />
+    <meta name="theme-color" content="#0a0a0a" />
     <meta name="color-scheme" content="dark" />
 
     <!-- canonical 与 hreflang -->
@@ -101,6 +101,11 @@ const allJsonLd = [websiteJsonLd, softwareJsonLd, ...jsonLd];
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
 
+    <!-- 关键字体预载（自托管，避免首屏标题闪动） -->
+    <link rel="preload" href="/fonts/dm-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/dm-sans-500.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/montserrat-500.woff2" as="font" type="font/woff2" crossorigin />
+
     <!-- 图标 -->
     <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="/app-icon-192.png" sizes="192x192" />
@@ -115,7 +120,6 @@ const allJsonLd = [websiteJsonLd, softwareJsonLd, ...jsonLd];
   </head>
   <body>
     <div class="page-glow" aria-hidden="true"></div>
-    <div class="page-grid" aria-hidden="true"></div>
 
     <Header lang={lang} dict={dict} />
 

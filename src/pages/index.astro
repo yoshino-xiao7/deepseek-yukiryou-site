@@ -4,9 +4,12 @@
  */
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
+import Concept from '../components/Concept.astro';
+import Approach from '../components/Approach.astro';
 import Features from '../components/Features.astro';
 import Why from '../components/Why.astro';
 import HowItWorks from '../components/HowItWorks.astro';
+import Platforms from '../components/Platforms.astro';
 import Install from '../components/Install.astro';
 import Roadmap from '../components/Roadmap.astro';
 import Security from '../components/Security.astro';
@@ -33,9 +36,12 @@ const faqLd = {
 
 <Base lang={lang} dict={dict} jsonLd={[faqLd]}>
   <Hero dict={dict} />
+  <Concept dict={dict} />
+  <Approach dict={dict} />
   <Features dict={dict} />
   <Why dict={dict} />
   <HowItWorks dict={dict} />
+  <Platforms dict={dict} />
   <Install dict={dict} />
   <Roadmap dict={dict} />
   <Security dict={dict} />

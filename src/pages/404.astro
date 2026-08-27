@@ -21,42 +21,37 @@ const copyZh = {
   <section class="notfound">
     <div class="container">
       <p class="nf-code">404</p>
-      <h1 class="nf-title" data-i18n="title">{copyZh.title}</h1>
-      <p class="nf-desc" data-i18n="desc">{copyZh.desc}</p>
-      <a class="btn btn-primary" href={copyZh.homeHref} data-i18n="home">{copyZh.home}</a>
+      <h1 class="t-h1 nf-title" data-i18n="title">{copyZh.title}</h1>
+      <p class="t-body nf-desc" data-i18n="desc">{copyZh.desc}</p>
+      <a class="btn btn-primary btn-m" href={copyZh.homeHref} data-i18n="home">{copyZh.home}</a>
     </div>
   </section>
 </Base>
 
 <style>
   .notfound {
-    min-height: 60vh;
+    min-height: 68vh;
     display: flex;
     align-items: center;
     text-align: center;
-    padding-block: 80px;
+    padding-block: var(--space-11) var(--space-9);
   }
 
   .nf-code {
     font-family: var(--font-mono);
-    font-size: 72px;
-    font-weight: 800;
-    margin: 0 0 8px;
-    background: linear-gradient(120deg, #6b84ff, #31b4ff);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+    font-size: 64px;
+    line-height: 1;
+    color: var(--brand);
+    margin: 0 0 var(--space-5);
   }
 
   .nf-title {
-    font-size: 28px;
-    margin-bottom: 10px;
+    margin-bottom: var(--space-3);
   }
 
   .nf-desc {
     color: var(--text-muted);
-    margin-bottom: 28px;
+    margin-bottom: var(--space-6);
   }
 </style>
 

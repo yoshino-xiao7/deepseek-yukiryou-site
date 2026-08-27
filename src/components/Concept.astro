@@ -1,0 +1,117 @@
+---
+/**
+ * 概念区（对齐 Harness 官网 "Agent = Model + Harness"）：
+ * 居中 eyebrow + 大标题 + 两行说明 + 三张等宽标签卡。
+ */
+import Icon from './Icon.astro';
+import type { Dict } from '../i18n/content';
+
+interface Props {
+  dict: Dict;
+}
+
+const { dict } = Astro.props;
+const c = dict.concept;
+---
+
+<section class="section concept" id="concept">
+  <div class="container">
+    <div class="section-head section-head--center reveal">
+      <span class="eyebrow"><span>{c.eyebrow}</span></span>
+      <h2 class="t-h1 concept-title">
+        <span class="concept-title-lead">{c.titleLead}</span>
+        {c.titleRest}
+      </h2>
+      <div class="concept-lines">
+        {c.lines.map((line) => (
+          <p class="t-body text-muted concept-line">{line}</p>
+        ))}
+      </div>
+    </div>
+
+    <div class="grid-3 reveal">
+      {c.items.map((item) => (
+        <article class="card concept-card">
+          <div class="concept-icon">
+            <Icon name={item.icon} size={26} strokeWidth={1.5} />
+          </div>
+          <h3 class="t-title concept-card-title">
+            {item.href ? (
+              <a class="concept-link" href={item.href} target="_blank" rel="noopener noreferrer">
+                {item.title}
+              </a>
+            ) : (
+              item.title
+            )}
+          </h3>
+          <span class="t-mono-label concept-mono">{item.mono}</span>
+          <p class="t-caption text-muted concept-desc">{item.desc}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .concept-title {
+    max-width: 820px;
+  }
+
+  /* 品牌色前导词，呼应官网把 "Harness" 单独着色的处理 */
+  /* 与官网一致：展示标题保持纯白，蓝色只用于 prompt / 链接 / 小标签 */
+  .concept-title-lead {
+    color: var(--text);
+  }
+
+  .concept-lines {
+    max-width: 760px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .concept-line {
+    line-height: 1.75;
+  }
+
+  .concept-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .concept-icon {
+    color: var(--text);
+    opacity: 0.7;
+    margin-bottom: var(--space-4);
+  }
+
+  .concept-card-title {
+    margin-bottom: var(--space-2);
+  }
+
+  .concept-link {
+    text-decoration: underline;
+    text-decoration-style: dashed;
+    text-decoration-color: rgba(255, 255, 255, 0.3);
+    text-underline-offset: 4px;
+    transition: color 0.2s ease;
+  }
+
+  .concept-link:hover {
+    color: var(--brand);
+  }
+
+  .concept-mono {
+    display: block;
+    margin-bottom: var(--space-3);
+  }
+
+  .concept-desc {
+    line-height: 1.65;
+  }
+
+  .concept .grid-3 {
+    margin-top: var(--space-8);
+  }
+</style>

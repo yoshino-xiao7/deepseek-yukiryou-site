@@ -1,6 +1,6 @@
 ---
 /**
- * 功能特性：8 张卡片网格
+ * 功能特性：等宽标签卡片网格（对齐 Harness 官网卡片版式）
  */
 import Icon from './Icon.astro';
 import { type Dict } from '../i18n/content';
@@ -15,19 +15,20 @@ const { dict } = Astro.props;
 <section class="section" id="features">
   <div class="container">
     <div class="section-head section-head--center reveal">
-      <span class="eyebrow">{dict.features.eyebrow}</span>
-      <h2 class="section-title">{dict.features.title}</h2>
-      <p class="section-sub">{dict.features.subtitle}</p>
+      <span class="eyebrow"><span>{dict.features.eyebrow}</span></span>
+      <h2 class="t-h1">{dict.features.title}</h2>
+      <p class="t-body section-sub">{dict.features.subtitle}</p>
     </div>
 
-    <div class="feature-grid">
-      {dict.features.items.map((item, i) => (
-        <article class="feature-card reveal" style={`--d: ${i * 40}ms`}>
-          <span class="feature-icon">
-            <Icon name={item.icon} size={22} />
-          </span>
-          <h3 class="feature-title">{item.title}</h3>
-          <p class="feature-desc">{item.desc}</p>
+    <div class="feature-grid reveal">
+      {dict.features.items.map((item) => (
+        <article class="card feature-card">
+          <div class="feature-icon">
+            <Icon name={item.icon} size={22} strokeWidth={1.5} />
+          </div>
+          <h3 class="t-title feature-title">{item.title}</h3>
+          {item.mono && <span class="t-mono-label feature-mono">{item.mono}</span>}
+          <p class="t-caption text-muted feature-desc">{item.desc}</p>
         </article>
       ))}
     </div>
@@ -37,62 +38,52 @@ const { dict } = Astro.props;
 <style>
   .feature-grid {
     display: grid;
-    gap: 16px;
+    gap: var(--space-4);
     grid-template-columns: 1fr;
+    margin-top: var(--space-8);
   }
 
   @media (min-width: 640px) {
     .feature-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (min-width: 1024px) {
     .feature-grid {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-5);
     }
   }
 
   .feature-card {
-    background: linear-gradient(180deg, var(--bg-card), rgba(11, 16, 24, 0.6));
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px 22px;
-    transition:
-      border-color 0.2s ease,
-      transform 0.2s ease,
-      background 0.2s ease;
-    transition-delay: var(--d, 0ms);
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-5);
   }
 
-  .feature-card:hover {
-    border-color: var(--accent-border);
-    background: linear-gradient(180deg, #0e1524, rgba(11, 16, 24, 0.7));
-    transform: translateY(-3px);
+  @media (min-width: 768px) {
+    .feature-card {
+      padding: var(--space-6);
+    }
   }
 
   .feature-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(--accent-soft);
-    border: 1px solid var(--accent-border);
-    color: var(--accent-hover);
-    margin-bottom: 16px;
+    color: var(--text);
+    opacity: 0.7;
+    margin-bottom: var(--space-4);
   }
 
   .feature-title {
-    font-size: 17px;
-    font-weight: 650;
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
+  }
+
+  .feature-mono {
+    display: block;
+    margin-bottom: var(--space-3);
   }
 
   .feature-desc {
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--text-muted);
+    line-height: 1.65;
   }
 </style>

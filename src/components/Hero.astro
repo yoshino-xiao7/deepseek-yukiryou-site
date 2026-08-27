@@ -1,6 +1,8 @@
 ---
 /**
- * Hero 区：徽章 + 主标题 + 副标题 + 按钮 + 需求列表 + 应用截图
+ * Hero 区：对齐 DeepSeek Harness 官网版式 —
+ * 左侧 kicker + 大标题 + 两段副文案 + 按钮组，
+ * 右侧带 Tab 的终端卡片（交通灯 + 复制按钮）。
  */
 import Icon from './Icon.astro';
 import Download from './Download.astro';
@@ -11,50 +13,111 @@ interface Props {
 }
 
 const { dict } = Astro.props;
+const term = dict.hero.terminal;
+
+/**
+ * 终端演示使用构建时下载清单里的真实文件名与 SHA-256，
+ * 不编造哈希；清单缺字段时该行自动省略。
+ */
+const macArtifact = DOWNLOADS.platforms?.['darwin-arm64']?.primary;
+const winArtifact = DOWNLOADS.platforms?.['win32-x64']?.primary;
+
+const termBlocks = [
+  {
+    prompt: '$ ',
+    cmd: `shasum -a 256 ${macArtifact?.name ?? 'DeepSeek.YukiRyou-arm64.dmg'}`,
+    out: macArtifact?.sha256
+      ? [`${macArtifact.sha256}  ${macArtifact.name}`, '', '$ grep -F "$(shasum -a 256 *.dmg | cut -d\' \' -f1)" SHA256SUMS.txt', 'OK']
+      : [],
+  },
+  {
+    prompt: 'PS> ',
+    cmd: `Get-FileHash .\\${winArtifact?.name ?? 'DeepSeek.YukiRyou-Setup.exe'} -Algorithm SHA256`,
+    out: winArtifact?.sha256
+      ? ['Algorithm  Hash', '---------  ----', `SHA256     ${winArtifact.sha256.toUpperCase()}`]
+      : [],
+  },
+].map((b) => ({ ...b, outText: b.out.length > 0 ? `\n${b.out.join('\n')}` : '' }));
 ---
 
 <section class="hero">
   <div class="container hero-inner">
-    <div class="hero-copy reveal">
-      <span class="hero-badge">
-        <span class="hero-badge-dot"></span>
-        {dict.hero.badge}
-        <span class="hero-badge-sep"></span>
-        {dict.hero.versionLabel} <span data-dl-version>{DOWNLOADS.version ?? PROJECT.version}</span>
-      </span>
+    <div class="hero-copy">
+      <div class="hero-enter hero-head" style="--enter-y:24px;--enter-blur:10px;animation-duration:0.9s">
+        <p class="hero-kicker">{dict.hero.kicker}</p>
+        <h1 class="t-hero hero-title">
+          {dict.hero.title}
+          <br />
+          <span class="hero-title-accent">{dict.hero.titleAccent}</span>
+        </h1>
+      </div>
 
-      <h1 class="hero-title">
-        {dict.hero.title}
-        <br />
-        <span class="gradient-text">{dict.hero.titleAccent}</span>
-      </h1>
+      <div class="hero-enter hero-lede" style="--enter-y:20px;--enter-blur:8px;animation-delay:0.15s">
+        <p class="t-body text-muted">{dict.hero.subtitle}</p>
+        <p class="t-body text-muted">{dict.hero.subtitle2}</p>
+      </div>
 
-      <p class="hero-sub">{dict.hero.subtitle}</p>
-
-      <div class="hero-cta">
+      <div class="hero-enter hero-cta" style="--enter-y:16px;animation-duration:0.7s;animation-delay:0.3s">
         <Download dict={dict} variant="lg" />
-        <a class="btn btn-secondary btn-lg" href={PROJECT.repo}>
-          <Icon name="github" size={17} />
+        <a class="btn btn-secondary btn-m" href={PROJECT.repo}>
+          <Icon name="github" size={16} />
           {dict.hero.ctaSecondary}
         </a>
       </div>
 
-      <p class="hero-disclaimer">
-        <Icon name="shield" size={13} />
-        {dict.hero.disclaimer}
-      </p>
-
-      <ul class="hero-req">
-        {dict.hero.requirements.map((r) => (
-          <li>
-            <Icon name="check" size={13} />
-            {r}
-          </li>
-        ))}
-      </ul>
+      <div class="hero-enter hero-meta" style="--enter-y:12px;animation-delay:0.42s">
+        <span class="hero-version">
+          <span class="hero-version-dot"></span>
+          {dict.hero.versionLabel}
+          <span class="hero-version-num" data-dl-version>{DOWNLOADS.version ?? PROJECT.version}</span>
+        </span>
+        <ul class="hero-req">
+          {dict.hero.requirements.map((r) => (
+            <li>{r}</li>
+          ))}
+        </ul>
+      </div>
     </div>
 
-    <div class="hero-visual reveal">
+    <div class="hero-visual hero-enter" style="--enter-y:20px;animation-duration:0.9s;animation-delay:0.4s">
+      <div class="term-tabs" role="tablist">
+        {term.tabs.map((label, i) => (
+          <button
+            type="button"
+            role="tab"
+            class:list={['term-tab', i === 0 && 'is-active']}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            data-term-tab={i}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div class="term-card">
+        <div class="term-head">
+          <div class="term-lights" aria-hidden="true">
+            <span class="term-light term-light--red"></span>
+            <span class="term-light term-light--amber"></span>
+            <span class="term-light term-light--green"></span>
+          </div>
+          <button type="button" class="term-copy" data-term-copy data-copied={term.copied}>
+            <Icon name="copy" size={13} />
+            <span data-term-copy-label>{term.copy}</span>
+          </button>
+        </div>
+
+        <div class="term-body">
+          {termBlocks.map((block, i) => (
+            <pre
+              class:list={['term-pre', i !== 0 && 'is-hidden']}
+              data-term-pre={i}
+              aria-hidden={i !== 0 ? 'true' : undefined}
+            ><span class="term-prompt">{block.prompt}</span><span data-term-cmd>{block.cmd}</span><span class="term-out">{block.outText}</span></pre>
+          ))}
+        </div>
+      </div>
+
       <figure class="shot-frame">
         <img
           class="shot-img"
@@ -66,9 +129,10 @@ const { dict } = Astro.props;
           fetchpriority="high"
         />
       </figure>
-      <p class="hero-visual-caption">
-        <Icon name="spark" size={13} />
-        {dict.hero.shotCaption}
+
+      <p class="hero-disclaimer">
+        <Icon name="shield" size={13} />
+        {dict.hero.disclaimer}
       </p>
     </div>
   </div>
@@ -77,88 +141,119 @@ const { dict } = Astro.props;
 <style>
   .hero {
     position: relative;
-    padding-block: 72px 64px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  /* 桌面首屏铺满视口，避免标题下方留大片空带 */
+  @media (min-width: 900px) {
+    .hero {
+      min-height: 100svh;
+    }
   }
 
   .hero-inner {
     display: grid;
-    gap: 48px;
+    grid-template-columns: 1fr;
+    gap: var(--space-9);
     align-items: center;
+    padding-top: var(--space-10);
+    padding-bottom: var(--space-9);
   }
 
-  @media (min-width: 1024px) {
-    .hero {
-      padding-block: 96px 80px;
-    }
+  @media (min-width: 900px) {
     .hero-inner {
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-      gap: 56px;
+      /* minmax(0,…) 防止终端里的长等宽命令把栅格撑破 */
+      grid-template-columns: minmax(0, 56fr) minmax(0, 44fr);
+      padding-bottom: var(--space-11);
     }
   }
 
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 7px 14px;
-    margin-bottom: 22px;
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
   }
 
-  .hero-badge-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 10px rgba(52, 211, 153, 0.9);
+  @media (min-width: 900px) {
+    .hero-copy {
+      gap: var(--space-7);
+    }
   }
 
-  .hero-badge-sep {
-    width: 1px;
-    height: 12px;
-    background: var(--border-strong);
+  .hero-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    align-items: flex-start;
+  }
+
+  .hero-kicker {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    color: #fff;
+    padding-left: 3px;
+  }
+
+  @media (min-width: 768px) {
+    .hero-kicker {
+      font-size: 18px;
+    }
   }
 
   .hero-title {
-    font-size: clamp(32px, 5.4vw, 54px);
-    font-weight: 750;
-    line-height: 1.12;
-    letter-spacing: -0.025em;
-    margin-bottom: 20px;
+    letter-spacing: 0.2px;
   }
 
-  .hero-sub {
-    font-size: 17.5px;
-    line-height: 1.75;
-    color: var(--text-muted);
-    max-width: 34em;
-    margin-bottom: 30px;
+  /* 官网大标题为纯白，品牌蓝只留给 prompt、链接与小标签 */
+  .hero-title-accent {
+    color: var(--text);
+  }
+
+  .hero-lede {
+    max-width: 580px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
   }
 
   .hero-cta {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px;
-    margin-bottom: 22px;
-  }
-
-  .btn-lg {
-    padding: 13px 26px;
-    font-size: 16px;
-  }
-
-  .hero-disclaimer {
-    display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 14px;
+  }
+
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+  }
+
+  .hero-version {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .hero-version-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(40, 200, 64, 0.8);
+  }
+
+  .hero-version-num {
+    font-family: var(--font-mono);
     font-size: 12.5px;
-    color: var(--text-faint);
-    margin-bottom: 16px;
+    color: var(--text-secondary);
   }
 
   .hero-req {
@@ -167,55 +262,217 @@ const { dict } = Astro.props;
     padding: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 20px;
+    gap: 6px var(--space-4);
   }
 
   .hero-req li {
-    display: inline-flex;
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+
+  .hero-req li + li::before {
+    content: '·';
+    margin-right: var(--space-4);
+    color: var(--text-faint);
+  }
+
+  /* 右侧视觉 */
+  .hero-visual {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  /* 终端 Tab（贴在卡片上沿） */
+  .term-tabs {
+    display: flex;
+    gap: var(--space-1);
+    padding-inline: var(--space-1);
+    margin-left: 6px;
+  }
+
+  .term-tab {
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .term-tab:hover {
+    color: var(--text);
+  }
+
+  .term-tab.is-active {
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.2);
+    border-color: var(--border-subtle);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .term-card {
+    border-radius: var(--radius-media);
+    border: 1px solid var(--border-subtle);
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    overflow: hidden;
+    margin-top: -13px;
+  }
+
+  .term-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .term-lights {
+    display: flex;
     align-items: center;
     gap: 7px;
+  }
+
+  .term-light {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    display: block;
+  }
+
+  .term-light--red {
+    background: var(--red);
+  }
+  .term-light--amber {
+    background: var(--amber);
+  }
+  .term-light--green {
+    background: var(--green);
+  }
+
+  .term-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--text-muted);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+
+  .term-copy:hover {
+    color: var(--text);
+  }
+
+  .term-body {
+    padding: var(--space-5);
+    /* 两条命令叠在同一网格单元：高度由最长者决定，切 Tab 不跳动 */
+    display: grid;
+  }
+
+  .term-pre {
+    grid-area: 1 / 1;
+    margin: 0;
+    font-family: var(--font-mono);
     font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .term-pre.is-hidden {
+    visibility: hidden;
+  }
+
+  .term-prompt {
+    user-select: none;
+    color: var(--brand);
+  }
+
+  .term-out {
     color: var(--text-muted);
   }
 
-  .hero-req li :global(svg) {
-    color: var(--green);
-  }
-
-  .hero-visual {
-    position: relative;
-  }
-
-  /* 真实应用截图的外框 */
+  /* 应用截图 */
   .shot-frame {
-    margin: 0;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-strong);
+    margin: var(--space-2) 0 0;
+    border-radius: var(--radius-media);
+    border: 1px solid var(--border-subtle);
     overflow: hidden;
     background: #fff;
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.03),
       0 24px 64px -24px rgba(0, 0, 0, 0.8),
-      0 0 80px -20px rgba(77, 107, 254, 0.28);
+      0 0 80px -24px rgba(var(--rgb-brand), 0.24);
   }
 
   .shot-img {
     width: 100%;
     height: auto;
-    display: block;
   }
 
-  .hero-visual-caption {
+  .hero-disclaimer {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 13px;
+    gap: 7px;
+    font-size: 12px;
     color: var(--text-faint);
-    margin-top: 18px;
-  }
-
-  .hero-visual-caption :global(svg) {
-    color: var(--accent-hover);
   }
 </style>
+
+<script>
+  // 终端 Tab 切换：同步命令文本与复制目标
+  const tabs = Array.from(document.querySelectorAll('[data-term-tab]'));
+  const pres = Array.from(document.querySelectorAll('[data-term-pre]'));
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const idx = tab.getAttribute('data-term-tab');
+      tabs.forEach((t) => {
+        const active = t === tab;
+        t.classList.toggle('is-active', active);
+        t.setAttribute('aria-selected', String(active));
+      });
+      pres.forEach((p) => {
+        const hidden = p.getAttribute('data-term-pre') !== idx;
+        p.classList.toggle('is-hidden', hidden);
+        // visibility:hidden 仍留在无障碍树内，显式标记避免读屏念到未选中的命令
+        if (hidden) p.setAttribute('aria-hidden', 'true');
+        else p.removeAttribute('aria-hidden');
+      });
+    });
+  });
+
+  // 复制当前可见命令
+  const copyBtn = document.querySelector('[data-term-copy]');
+  const copyLabel = document.querySelector('[data-term-copy-label]');
+  copyBtn?.addEventListener('click', async () => {
+    const visible = pres.find((p) => !p.classList.contains('is-hidden'));
+    // 只复制命令本身，不含模拟输出
+    const text = visible?.querySelector('[data-term-cmd]')?.textContent?.trim() ?? '';
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      return;
+    }
+    if (!copyLabel) return;
+    const original = copyLabel.textContent;
+    copyLabel.textContent = copyBtn.getAttribute('data-copied') ?? 'Copied';
+    setTimeout(() => {
+      copyLabel.textContent = original;
+    }, 1600);
+  });
+</script>

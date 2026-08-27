@@ -1,0 +1,228 @@
+---
+/**
+ * 平台切换区（对齐 Harness 官网运行模式 Tabs）：
+ * 左侧竖排 Tab 列表，右侧显示所选平台的说明与要点。
+ */
+import Icon from './Icon.astro';
+import Download from './Download.astro';
+import type { Dict } from '../i18n/content';
+
+interface Props {
+  dict: Dict;
+}
+
+const { dict } = Astro.props;
+const p = dict.platforms;
+---
+
+<section class="section platforms" id="platforms">
+  <div class="container">
+    <div class="section-head section-head--center reveal">
+      <span class="eyebrow"><span>{p.eyebrow}</span></span>
+      <h2 class="t-h1">{p.title}</h2>
+      <p class="t-body section-sub">{p.subtitle}</p>
+    </div>
+
+    <div class="pf-shell reveal">
+      <div class="pf-tabs" role="tablist" aria-label={p.title}>
+        {p.tabs.map((tab, i) => (
+          <button
+            type="button"
+            role="tab"
+            id={`pf-tab-${tab.id}`}
+            aria-controls={`pf-panel-${tab.id}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            class:list={['pf-tab', i === 0 && 'is-active']}
+            data-pf-tab={tab.id}
+          >
+            <Icon name={tab.icon} size={18} strokeWidth={1.6} />
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <div class="pf-panels">
+        {p.tabs.map((tab, i) => (
+          <div
+            role="tabpanel"
+            id={`pf-panel-${tab.id}`}
+            aria-labelledby={`pf-tab-${tab.id}`}
+            class="pf-panel"
+            data-pf-panel={tab.id}
+            hidden={i !== 0}
+          >
+            <h3 class="t-subtitle pf-title">{tab.title}</h3>
+            <p class="t-body text-muted pf-desc">{tab.desc}</p>
+            <ul class="pf-points">
+              {tab.points.map((pt) => (
+                <li>
+                  <Icon name="check" size={14} />
+                  <span class="t-caption text-secondary">{pt}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+
+        <div class="pf-cta">
+          <Download dict={dict} variant="lg" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .pf-shell {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    margin-top: var(--space-8);
+  }
+
+  @media (min-width: 900px) {
+    .pf-shell {
+      grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+      gap: var(--space-6);
+      align-items: start;
+    }
+  }
+
+  .pf-tabs {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-2);
+    overflow-x: auto;
+  }
+
+  @media (min-width: 900px) {
+    .pf-tabs {
+      flex-direction: column;
+      overflow: visible;
+      position: sticky;
+      top: 96px;
+    }
+  }
+
+  .pf-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-media);
+    border: 1px solid var(--border);
+    background: var(--surface-4);
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    transition:
+      color 0.25s ease,
+      background 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  @media (min-width: 900px) {
+    .pf-tab {
+      width: 100%;
+    }
+  }
+
+  .pf-tab:hover {
+    color: var(--text);
+    border-color: var(--border-hover);
+  }
+
+  .pf-tab.is-active {
+    color: var(--text);
+    background: var(--surface-1);
+    border-color: var(--border-strong);
+  }
+
+  .pf-tab.is-active :global(svg) {
+    color: var(--brand);
+  }
+
+  .pf-panels {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-panel);
+    background: var(--surface-3);
+    padding: var(--space-6);
+  }
+
+  @media (min-width: 768px) {
+    .pf-panels {
+      padding: var(--space-7);
+    }
+  }
+
+  .pf-panel[hidden] {
+    display: none;
+  }
+
+  .pf-title {
+    margin-bottom: var(--space-3);
+  }
+
+  .pf-desc {
+    line-height: 1.7;
+    max-width: 62ch;
+  }
+
+  .pf-points {
+    list-style: none;
+    margin: var(--space-5) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  @media (min-width: 640px) {
+    .pf-points {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3) var(--space-5);
+    }
+  }
+
+  .pf-points li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .pf-points :global(svg) {
+    color: var(--green);
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+
+  .pf-cta {
+    margin-top: var(--space-6);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-subtle);
+  }
+</style>
+
+<script>
+  const tabs = Array.from(document.querySelectorAll('[data-pf-tab]'));
+  const panels = Array.from(document.querySelectorAll('[data-pf-panel]'));
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const id = tab.getAttribute('data-pf-tab');
+      tabs.forEach((t) => {
+        const active = t === tab;
+        t.classList.toggle('is-active', active);
+        t.setAttribute('aria-selected', String(active));
+      });
+      panels.forEach((panel) => {
+        // hidden 同时移出无障碍树与 Tab 焦点序列
+        (panel as HTMLElement).hidden = panel.getAttribute('data-pf-panel') !== id;
+      });
+    });
+  });
+</script>
