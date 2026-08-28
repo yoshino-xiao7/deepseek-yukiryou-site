@@ -11,6 +11,8 @@
  * 失败处理（绝不静默）：每一步失败都 console 记录具体原因；
  * 全部不可用时保持 SSR 内联配置（构建时生成，仍然可用），并记录回退原因。
  */
+import { formatChecksumDemo, type ChecksumMode } from '../lib/checksum-demo';
+
 const GITHUB_LATEST =
   'https://github.com/yoshino-xiao7/deepseek-harness-desktop-yukiryou/releases/latest';
 
@@ -134,6 +136,8 @@ function applyConfig(config: DownloadConfig | null) {
     platforms?.[platform]?.[kind]?.name;
   const sizeFor = (platform: string, kind: Kind): number | undefined =>
     platforms?.[platform]?.[kind]?.size;
+  const sha256For = (platform: string, kind: Kind): string | undefined =>
+    platforms?.[platform]?.[kind]?.sha256;
 
   // 版本号徽章
   if (config?.version) {
@@ -179,6 +183,32 @@ function applyConfig(config: DownloadConfig | null) {
     if (kind !== 'primary' && kind !== 'alternative') return;
     const name = nameFor(platform, kind);
     if (name) el.textContent = name;
+  });
+
+  // Hero 终端校验演示：版本更新后必须同步文件名与 SHA-256，
+  // 否则会把上一版的哈希留在页面上，用户照着核对必然失败。
+  document.querySelectorAll<HTMLElement>('[data-term-pre]').forEach((pre) => {
+    const platform = pre.dataset.termPlatform ?? '';
+    const kind = pre.dataset.termKind;
+    const mode = pre.dataset.termMode;
+    const fallbackName = pre.dataset.termFallback ?? '';
+    if (kind !== 'primary' && kind !== 'alternative') return;
+    if (mode !== 'shasum' && mode !== 'filehash') return;
+
+    const promptEl = pre.querySelector<HTMLElement>('[data-term-prompt]');
+    const cmdEl = pre.querySelector<HTMLElement>('[data-term-cmd]');
+    const outEl = pre.querySelector<HTMLElement>('[data-term-out]');
+    if (!cmdEl) return;
+
+    const demo = formatChecksumDemo(
+      mode as ChecksumMode,
+      nameFor(platform, kind),
+      sha256For(platform, kind),
+      fallbackName
+    );
+    if (promptEl) promptEl.textContent = demo.prompt;
+    cmdEl.textContent = demo.cmd;
+    if (outEl) outEl.textContent = demo.outText;
   });
 }
 

@@ -7,6 +7,7 @@
 import Icon from './Icon.astro';
 import Download from './Download.astro';
 import { PROJECT, DOWNLOADS, type Dict } from '../i18n/content';
+import { CHECKSUM_TARGETS, formatChecksumDemo } from '../lib/checksum-demo';
 
 interface Props {
   dict: Dict;
@@ -16,28 +17,17 @@ const { dict } = Astro.props;
 const term = dict.hero.terminal;
 
 /**
- * 终端演示使用构建时下载清单里的真实文件名与 SHA-256，
- * 不编造哈希；清单缺字段时该行自动省略。
+ * 终端演示只使用真实数据：构建时取下载清单里的文件名与 SHA-256，
+ * 客户端在 /api/downloads 返回更新后的版本时按同一函数重写，
+ * 避免版本更新后仍显示旧版哈希。
  */
-const macArtifact = DOWNLOADS.platforms?.['darwin-arm64']?.primary;
-const winArtifact = DOWNLOADS.platforms?.['win32-x64']?.primary;
-
-const termBlocks = [
-  {
-    prompt: '$ ',
-    cmd: `shasum -a 256 ${macArtifact?.name ?? 'DeepSeek.YukiRyou-arm64.dmg'}`,
-    out: macArtifact?.sha256
-      ? [`${macArtifact.sha256}  ${macArtifact.name}`, '', '$ grep -F "$(shasum -a 256 *.dmg | cut -d\' \' -f1)" SHA256SUMS.txt', 'OK']
-      : [],
-  },
-  {
-    prompt: 'PS> ',
-    cmd: `Get-FileHash .\\${winArtifact?.name ?? 'DeepSeek.YukiRyou-Setup.exe'} -Algorithm SHA256`,
-    out: winArtifact?.sha256
-      ? ['Algorithm  Hash', '---------  ----', `SHA256     ${winArtifact.sha256.toUpperCase()}`]
-      : [],
-  },
-].map((b) => ({ ...b, outText: b.out.length > 0 ? `\n${b.out.join('\n')}` : '' }));
+const termBlocks = CHECKSUM_TARGETS.map((target) => {
+  const artifact = DOWNLOADS.platforms?.[target.platform]?.[target.kind];
+  return {
+    ...target,
+    ...formatChecksumDemo(target.mode, artifact?.name, artifact?.sha256, target.fallbackName),
+  };
+});
 ---
 
 <section class="hero">
@@ -113,7 +103,11 @@ const termBlocks = [
               class:list={['term-pre', i !== 0 && 'is-hidden']}
               data-term-pre={i}
               aria-hidden={i !== 0 ? 'true' : undefined}
-            ><span class="term-prompt">{block.prompt}</span><span data-term-cmd>{block.cmd}</span><span class="term-out">{block.outText}</span></pre>
+              data-term-platform={block.platform}
+              data-term-kind={block.kind}
+              data-term-mode={block.mode}
+              data-term-fallback={block.fallbackName}
+            ><span class="term-prompt" data-term-prompt>{block.prompt}</span><span data-term-cmd>{block.cmd}</span><span class="term-out" data-term-out>{block.outText}</span></pre>
           ))}
         </div>
       </div>
