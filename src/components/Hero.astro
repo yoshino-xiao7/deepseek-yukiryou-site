@@ -383,8 +383,10 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
     font-size: 13.5px;
     line-height: 1.65;
     color: var(--text);
+    /* 只在空格处换行。break-all 会把 SHA-256 / 长文件名从中间截开 */
     white-space: pre-wrap;
-    word-break: break-all;
+    overflow-wrap: break-word;
+    word-break: normal;
   }
 
   .term-pre.is-hidden {

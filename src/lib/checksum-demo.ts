@@ -16,7 +16,11 @@ export interface ChecksumDemo {
   prompt: string;
   /** 可复制的命令本体 */
   cmd: string;
-  /** 命令下方的模拟输出；缺少哈希时为空字符串 */
+  /**
+   * 命令下方的补充行。
+   * 刻意不把 64 位 SHA-256 写进终端：卡片宽度装不下整行哈希，
+   * 断行会把校验值拦腰截开，看起来像渲染错误。
+   */
   outText: string;
 }
 
@@ -60,14 +64,17 @@ export function formatChecksumDemo(
   const paired = hash && name ? hash : '';
 
   if (mode === 'filehash') {
-    const cmd = `Get-FileHash .\\${file} -Algorithm SHA256`;
-    const outText = paired
-      ? `\nAlgorithm  Hash\n---------  ----\nSHA256     ${paired.toUpperCase()}`
-      : '';
-    return { prompt: 'PS> ', cmd, outText };
+    return {
+      prompt: 'PS> ',
+      cmd: `Get-FileHash .\\${file} -Algorithm SHA256`,
+      // 哈希由下载清单 / SHA256SUMS-Windows.txt 提供，不在窄终端里回显
+      outText: paired ? '\n# SHA256SUMS-Windows.txt' : '',
+    };
   }
 
-  const cmd = `shasum -a 256 ${file}`;
-  const outText = paired ? `\n${paired}  ${file}` : '';
-  return { prompt: '$ ', cmd, outText };
+  return {
+    prompt: '$ ',
+    cmd: `shasum -a 256 ${file}`,
+    outText: paired ? '\n# SHA256SUMS.txt' : '',
+  };
 }
