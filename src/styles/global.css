@@ -66,6 +66,15 @@
     U+2193, U+2212, U+2215, U+feff, U+fffd;
 }
 
+/* 像素展示字（对齐 harness 官网概念区 "Edit Undo" 记号，开源替代 Silkscreen OFL） */
+@font-face {
+  font-family: 'Silkscreen';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/silkscreen-400.woff2') format('woff2');
+}
+
 /* ---------- 设计令牌 ---------- */
 
 :root {
@@ -124,6 +133,7 @@
     'Noto Sans SC', 'Microsoft YaHei', var(--font-body);
   --font-mono: 'Fragment Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
     'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', monospace;
+  --font-pixel: 'Silkscreen', var(--font-mono);
 
   /* 间距标尺 */
   --space-1: 4px;
@@ -237,7 +247,7 @@ p {
 
 .t-hero {
   font-family: var(--font-display);
-  font-size: 36px;
+  font-size: 34px;
   font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -245,13 +255,14 @@ p {
 
 @media (min-width: 768px) {
   .t-hero {
-    font-size: 46px;
+    font-size: 40px;
   }
 }
 
 @media (min-width: 1280px) {
   .t-hero {
-    font-size: 58px;
+    /* 实测 harness 官网 1440 视口 H1 为 46px / 500 / 1.2，此处对齐 */
+    font-size: 46px;
   }
 }
 
@@ -359,28 +370,17 @@ p {
   line-height: 1.75;
 }
 
-/* eyebrow：渐变描边 + 等宽小标签（对齐 harness 官网） */
+/* eyebrow：等宽小标签暗胶囊（对齐 harness 官网 AGENT = MODEL + HARNESS 样式） */
 .eyebrow {
   display: inline-flex;
   align-items: center;
   border-radius: var(--radius-sm);
-  padding: 1px;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.42) 0%,
-    rgba(255, 255, 255, 0.08) 35%,
-    rgba(255, 255, 255, 0.04) 65%,
-    rgba(255, 255, 255, 0.28) 100%
-  );
-  box-shadow:
-    0 0 16px rgba(255, 255, 255, 0.08),
-    0 0 32px rgba(255, 255, 255, 0.04);
+  padding: 6px 11px;
+  background: hsla(0, 0%, 100%, 0.05);
+  border: 1px solid var(--border-subtle);
 }
 
 .eyebrow > span {
-  padding: 6px 9px 5px;
-  border-radius: 7px;
-  background: rgba(0, 0, 0, 0.25);
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 500;
@@ -464,9 +464,10 @@ p {
 }
 
 .btn-ghost {
+  /* 官网次级 pill：透明底 + 细描边，hover 提亮 */
   background: transparent;
   color: #fff;
-  font-weight: 400;
+  border-color: var(--btn-secondary-border);
   transition: border-color 0.2s;
 }
 
@@ -567,26 +568,6 @@ p {
   border: 0;
   margin: 0;
   background: var(--border-subtle);
-}
-
-/* ---------- 页面氛围光 ---------- */
-
-.page-glow {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      70% 46% at 50% -10%,
-      rgba(var(--rgb-brand), 0.16),
-      transparent 72%
-    ),
-    radial-gradient(
-      42% 30% at 88% 8%,
-      rgba(115, 163, 210, 0.08),
-      transparent 70%
-    );
 }
 
 /* ---------- 动效 ---------- */

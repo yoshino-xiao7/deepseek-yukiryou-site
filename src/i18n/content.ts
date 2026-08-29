@@ -739,7 +739,7 @@ export const t: Record<Lang, Dict> = {
     },
     concept: {
       eyebrow: 'Harness = Runtime + Desktop',
-      titleLead: 'A desktop shell',
+      titleLead: 'A desktop shell ',
       titleRest: 'that keeps Harness running on your machine',
       lines: [
         'Harness is the body of an agent.',

@@ -18,6 +18,7 @@ const c = dict.concept;
   <div class="container">
     <div class="section-head section-head--center reveal">
       <span class="eyebrow"><span>{c.eyebrow}</span></span>
+      <span class="concept-pixel" aria-hidden="true">Harness</span>
       <h2 class="t-h1 concept-title">
         <span class="concept-title-lead">{c.titleLead}</span>
         {c.titleRest}
@@ -61,6 +62,25 @@ const c = dict.concept;
   /* 与官网一致：展示标题保持纯白，蓝色只用于 prompt / 链接 / 小标签 */
   .concept-title-lead {
     color: var(--text);
+  }
+
+  /* 像素字记号：对齐 harness 官网概念区的蓝色像素 "Harness"（Edit Undo → Silkscreen） */
+  .concept-pixel {
+    font-family: var(--font-pixel);
+    font-size: 34px;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--brand);
+    /* 与 eyebrow 拉开、与主标题贴紧（官网把像素字当作标题的第一行） */
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: calc(-1 * var(--space-4));
+  }
+
+  @media (min-width: 768px) {
+    .concept-pixel {
+      font-size: 44px;
+    }
   }
 
   .concept-lines {

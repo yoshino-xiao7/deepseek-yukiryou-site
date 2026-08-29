@@ -1,6 +1,7 @@
 ---
 /**
- * 页脚：品牌 + 导航 + 项目链接 + 免责声明
+ * 页脚：对齐 harness 官网的单行极简页脚 —
+ * 品牌 | 开源信息 | 项目链接，下接一行免责声明与备案小字。
  */
 import Icon from './Icon.astro';
 import { PROJECT, type Dict, type Lang } from '../i18n/content';
@@ -12,99 +13,70 @@ interface Props {
 
 const { lang, dict } = Astro.props;
 
-const siteLinks = [
-  { href: '#concept', label: dict.nav.concept },
-  { href: '#features', label: dict.nav.features },
-  { href: '#why', label: dict.nav.why },
-  { href: '#install', label: dict.nav.install },
-  { href: '#roadmap', label: dict.nav.roadmap },
-  { href: '#faq', label: dict.nav.faq },
-];
-
 const projectLinks = [
   { href: PROJECT.repo, label: 'GitHub' },
   { href: PROJECT.releases, label: 'Releases' },
   { href: PROJECT.issues, label: 'Issues' },
-  { href: PROJECT.license, label: 'MIT License' },
 ];
 ---
 
 <footer class="site-footer">
   <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <a class="brand" href={lang === 'zh-CN' ? '/' : '/en/'} aria-label="DeepSeek YukiRyou">
-          <img class="brand-logo" src={PROJECT.icon} alt="" width="32" height="32" loading="lazy" />
-          <span class="brand-name">DeepSeek&nbsp;YukiRyou</span>
-        </a>
-        <p class="t-caption footer-tagline">{dict.footer.tagline}</p>
-        <a class="btn btn-secondary btn-s" href={PROJECT.repo}>
-          <Icon name="github" size={14} />
-          GitHub
-        </a>
-      </div>
+    <div class="footer-row">
+      <a class="brand" href={lang === 'zh-CN' ? '/' : '/en/'} aria-label="DeepSeek YukiRyou">
+        <img class="brand-logo" src={PROJECT.icon} alt="" width="26" height="26" loading="lazy" />
+        <span class="brand-name">DeepSeek&nbsp;YukiRyou</span>
+      </a>
 
-      <nav class="footer-col" aria-label="Footer site">
-        <h4 class="t-mono-label footer-heading">{dict.footer.navTitle}</h4>
-        <ul class="footer-links">
-          {siteLinks.map((l) => (
-            <li><a href={l.href}>{l.label}</a></li>
-          ))}
-        </ul>
-      </nav>
+      <p class="footer-meta">
+        <span>{dict.footer.license}</span>
+        <span class="dot-sep" aria-hidden="true"></span>
+        <span>{dict.footer.copyright}</span>
+      </p>
 
-      <nav class="footer-col" aria-label="Footer project">
-        <h4 class="t-mono-label footer-heading">{dict.footer.projectLinks}</h4>
-        <ul class="footer-links">
-          {projectLinks.map((l) => (
-            <li><a href={l.href} target="_blank" rel="noopener noreferrer">{l.label}</a></li>
-          ))}
-        </ul>
+      <nav class="footer-links" aria-label="Footer project">
+        {projectLinks.map((l) => (
+          <a href={l.href} target="_blank" rel="noopener noreferrer">{l.label}</a>
+        ))}
       </nav>
     </div>
 
-    <div class="footer-bottom">
+    <div class="footer-legal">
       <p class="footer-disclaimer">
         <Icon name="shield" size={13} />
         {dict.footer.disclaimer}
       </p>
-      <div class="footer-meta">
-        <span>{dict.footer.license}</span>
+      <!-- 备案信息（中国大陆合规要求，中英文页脚均展示） -->
+      <div class="beian-row">
+        <a
+          class="beian-link"
+          href="https://beian.miit.gov.cn/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          湘ICP备2025149178号-1
+        </a>
         <span class="dot-sep" aria-hidden="true"></span>
-        <span>{dict.footer.copyright}</span>
+        <a
+          class="beian-link"
+          href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=43102302000181"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg class="beian-badge" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path
+              d="M12 2.5 4.5 5.4v5.2c0 4.6 3.1 8.6 7.5 10 4.4-1.4 7.5-5.4 7.5-10V5.4L12 2.5z"
+              fill="currentColor"
+              opacity="0.9"
+            />
+            <path
+              d="M12 6.2l1.4 3.1 3.4.4-2.5 2.3.7 3.4-3-1.7-3 1.7.7-3.4-2.5-2.3 3.4-.4L12 6.2z"
+              fill="#0a0a0a"
+            />
+          </svg>
+          湘公网安备43102302000181号
+        </a>
       </div>
-    </div>
-
-    <!-- 备案信息（中国大陆合规要求，中英文页脚均展示） -->
-    <div class="beian-row">
-      <a
-        class="beian-link"
-        href="https://beian.miit.gov.cn/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        湘ICP备2025149178号-1
-      </a>
-      <span class="dot-sep" aria-hidden="true"></span>
-      <a
-        class="beian-link"
-        href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=43102302000181"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <svg class="beian-badge" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-          <path
-            d="M12 2.5 4.5 5.4v5.2c0 4.6 3.1 8.6 7.5 10 4.4-1.4 7.5-5.4 7.5-10V5.4L12 2.5z"
-            fill="currentColor"
-            opacity="0.9"
-          />
-          <path
-            d="M12 6.2l1.4 3.1 3.4.4-2.5 2.3.7 3.4-3-1.7-3 1.7.7-3.4-2.5-2.3 3.4-.4L12 6.2z"
-            fill="#0a0a0a"
-          />
-        </svg>
-        湘公网安备43102302000181号
-      </a>
     </div>
   </div>
 </footer>
@@ -112,100 +84,32 @@ const projectLinks = [
 <style>
   .site-footer {
     border-top: 1px solid var(--border-subtle);
-    padding-block: var(--space-8) var(--space-6);
+    padding-block: var(--space-6) var(--space-5);
   }
 
-  .footer-grid {
-    display: grid;
-    gap: var(--space-7);
-    grid-template-columns: 1fr;
-    margin-bottom: var(--space-8);
-  }
-
-  @media (min-width: 768px) {
-    .footer-grid {
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
-    }
+  .footer-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4) var(--space-6);
   }
 
   .brand {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    margin-bottom: var(--space-3);
   }
 
   .brand-logo {
-    border-radius: 7px;
+    border-radius: 6px;
   }
 
   .brand-name {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
     letter-spacing: -0.01em;
-  }
-
-  .footer-tagline {
-    color: var(--text-muted);
-    margin-bottom: var(--space-5);
-    max-width: 32em;
-  }
-
-  .footer-heading {
-    display: block;
-    text-transform: uppercase;
-    margin-bottom: var(--space-4);
-  }
-
-  .footer-links {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .footer-links a {
-    font-size: 14px;
-    color: var(--text-muted);
-    transition: color 0.2s ease;
-  }
-
-  .footer-links a:hover {
-    color: var(--text);
-  }
-
-  .footer-bottom {
-    border-top: 1px solid var(--border-subtle);
-    padding-top: var(--space-5);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  @media (min-width: 768px) {
-    .footer-bottom {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-    }
-  }
-
-  .footer-disclaimer {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-2);
-    font-size: 12.5px;
-    line-height: 1.7;
-    color: var(--text-faint);
-    max-width: 46em;
-  }
-
-  .footer-disclaimer :global(svg) {
-    color: var(--text-faint);
-    flex-shrink: 0;
-    margin-top: 3px;
+    white-space: nowrap;
   }
 
   .footer-meta {
@@ -217,6 +121,22 @@ const projectLinks = [
     white-space: nowrap;
   }
 
+  .footer-links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+  }
+
+  .footer-links a {
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+  }
+
+  .footer-links a:hover {
+    color: var(--text);
+  }
+
   .dot-sep {
     width: 3px;
     height: 3px;
@@ -224,23 +144,52 @@ const projectLinks = [
     background: var(--text-faint);
   }
 
-  /* 备案信息 */
+  /* 合规行：免责声明 + 备案，小字弱化 */
+  .footer-legal {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  @media (min-width: 768px) {
+    .footer-legal {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  .footer-disclaimer {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text-faint);
+    max-width: 52em;
+  }
+
+  .footer-disclaimer :global(svg) {
+    color: var(--text-faint);
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+
   .beian-row {
     display: flex;
     align-items: center;
-    justify-content: center;
     flex-wrap: wrap;
     gap: var(--space-2) var(--space-3);
-    margin-top: var(--space-4);
-    padding-top: var(--space-4);
-    border-top: 1px solid var(--border-subtle);
   }
 
   .beian-link {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 12.5px;
+    font-size: 12px;
     color: var(--text-faint);
     transition: color 0.2s ease;
   }

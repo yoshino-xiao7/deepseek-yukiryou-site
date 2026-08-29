@@ -11,6 +11,11 @@ interface Props {
 
 const { dict } = Astro.props;
 const a = dict.approach;
+
+/** 有图条目走「左文右图」媒体行；无图条目并入下方双列卡片，避免右半栏空置 */
+const withIndex = a.items.map((item, i) => ({ item, i }));
+const mediaItems = withIndex.filter(({ item }) => item.image);
+const plainItems = withIndex.filter(({ item }) => !item.image);
 ---
 
 <section class="section approach" id="approach">
@@ -21,28 +26,38 @@ const a = dict.approach;
     </div>
 
     <div class="approach-list">
-      {a.items.map((item, i) => (
-        <article class:list={['approach-item', 'reveal', item.image && 'approach-item--media']}>
+      {mediaItems.map(({ item, i }) => (
+        <article class="approach-item approach-item--media reveal">
           <div class="approach-copy">
             <span class="t-mono-label approach-index">{String(i + 1).padStart(2, '0')}</span>
             <h3 class="t-subtitle approach-item-title">{item.title}</h3>
             <p class="t-body text-muted approach-desc">{item.desc}</p>
           </div>
 
-          {item.image && (
-            <figure class="approach-figure">
-              <img
-                src={item.image}
-                alt={item.imageAlt ?? ''}
-                width="1400"
-                height="789"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
-          )}
+          <figure class="approach-figure">
+            <img
+              src={item.image}
+              alt={item.imageAlt ?? ''}
+              width="1400"
+              height="789"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
         </article>
       ))}
+
+      {plainItems.length > 0 && (
+        <div class="grid-2 approach-cards reveal">
+          {plainItems.map(({ item, i }) => (
+            <article class="card approach-card">
+              <span class="t-mono-label approach-index">{String(i + 1).padStart(2, '0')}</span>
+              <h3 class="t-subtitle approach-item-title">{item.title}</h3>
+              <p class="t-body text-muted approach-desc">{item.desc}</p>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   </div>
 </section>
@@ -61,11 +76,14 @@ const a = dict.approach;
   }
 
   .approach-item {
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .approach-item--media {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--space-6);
-    padding-top: var(--space-8);
-    border-top: 1px solid var(--border-subtle);
   }
 
   .approach-item:first-child {
@@ -79,6 +97,16 @@ const a = dict.approach;
       align-items: center;
       gap: var(--space-8);
     }
+  }
+
+  /* 无图条目：等高双列卡片，编号+标题+正文 */
+  .approach-cards {
+    margin-top: var(--space-8);
+  }
+
+  .approach-card {
+    display: flex;
+    flex-direction: column;
   }
 
   .approach-copy {

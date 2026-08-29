@@ -31,6 +31,7 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
 ---
 
 <section class="hero">
+  <canvas class="hero-canvas" data-hero-canvas aria-hidden="true"></canvas>
   <div class="container hero-inner">
     <div class="hero-copy">
       <div class="hero-enter hero-head" style="--enter-y:24px;--enter-blur:10px;animation-duration:0.9s">
@@ -49,7 +50,7 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
 
       <div class="hero-enter hero-cta" style="--enter-y:16px;animation-duration:0.7s;animation-delay:0.3s">
         <Download dict={dict} variant="lg" />
-        <a class="btn btn-secondary btn-m" href={PROJECT.repo}>
+        <a class="btn btn-ghost btn-m" href={PROJECT.repo}>
           <Icon name="github" size={16} />
           {dict.hero.ctaSecondary}
         </a>
@@ -112,18 +113,6 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
         </div>
       </div>
 
-      <figure class="shot-frame">
-        <img
-          class="shot-img"
-          src="/app-screenshot.png"
-          alt={dict.hero.shotAlt}
-          width="1400"
-          height="789"
-          loading="eager"
-          fetchpriority="high"
-        />
-      </figure>
-
       <p class="hero-disclaimer">
         <Icon name="shield" size={13} />
         {dict.hero.disclaimer}
@@ -138,6 +127,16 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
     display: flex;
     align-items: center;
     width: 100%;
+    overflow: hidden;
+  }
+
+  /* 首屏背景：深蓝流体 + 半调点阵（对齐 harness 官网的 canvas 氛围层） */
+  .hero-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
   }
 
   /* 桌面首屏铺满视口，避免标题下方留大片空带 */
@@ -148,6 +147,8 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
   }
 
   .hero-inner {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--space-9);
@@ -268,6 +269,13 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
     content: '·';
     margin-right: var(--space-4);
     color: var(--text-faint);
+  }
+
+  /* 窄屏换行时行首不悬挂分隔点 */
+  @media (max-width: 640px) {
+    .hero-req li + li::before {
+      content: none;
+    }
   }
 
   /* 右侧视觉 */
@@ -402,23 +410,6 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
     color: var(--text-muted);
   }
 
-  /* 应用截图 */
-  .shot-frame {
-    margin: var(--space-2) 0 0;
-    border-radius: var(--radius-media);
-    border: 1px solid var(--border-subtle);
-    overflow: hidden;
-    background: #fff;
-    box-shadow:
-      0 24px 64px -24px rgba(0, 0, 0, 0.8),
-      0 0 80px -24px rgba(var(--rgb-brand), 0.24);
-  }
-
-  .shot-img {
-    width: 100%;
-    height: auto;
-  }
-
   .hero-disclaimer {
     display: flex;
     align-items: center;
@@ -471,4 +462,121 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
       copyLabel.textContent = original;
     }, 1600);
   });
+
+  /**
+   * 首屏背景：海军蓝底色 + 缓慢漂移的蓝色光斑（screen 叠加）
+   * + 中部半调点阵（overlay，只在亮处显现）+ 底部/左侧渐隐回页面黑。
+   * 对齐 harness 官网的全屏 canvas 氛围层；内容均为柔和渐变，
+   * 固定按 CSS 像素 1x 渲染，30fps 节流，减少动态效果时只画静帧。
+   */
+  const backdrop = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
+  if (backdrop) {
+    const ctx = backdrop.getContext('2d');
+    const heroSection = backdrop.parentElement;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let w = 0;
+    let h = 0;
+    let dots: HTMLCanvasElement | null = null;
+
+    const paintDots = () => {
+      dots = document.createElement('canvas');
+      dots.width = Math.max(1, Math.ceil(w));
+      dots.height = Math.max(1, Math.ceil(h));
+      const dctx = dots.getContext('2d');
+      if (!dctx) return;
+      const gap = Math.max(13, Math.round(w / 100));
+      const y0 = h * 0.24;
+      const y1 = h * 0.72;
+      for (let y = y0; y <= y1; y += gap) {
+        const band = Math.sin(((y - y0) / (y1 - y0)) * Math.PI);
+        for (let x = 0; x <= w; x += gap) {
+          const ripple = 0.55 + 0.45 * Math.sin(x * 0.012 + y * 0.028);
+          const a = 0.28 * band * ripple;
+          if (a <= 0.02) continue;
+          dctx.beginPath();
+          dctx.fillStyle = `rgba(198, 216, 255, ${a.toFixed(3)})`;
+          dctx.arc(x, y, 1.3, 0, Math.PI * 2);
+          dctx.fill();
+        }
+      }
+    };
+
+    const resize = () => {
+      if (!heroSection || !ctx) return;
+      const rect = heroSection.getBoundingClientRect();
+      w = rect.width;
+      h = rect.height;
+      backdrop.width = Math.max(1, Math.round(w));
+      backdrop.height = Math.max(1, Math.round(h));
+      paintDots();
+    };
+
+    const blobs = [
+      { c: '64, 106, 255', a: 0.32, r: 0.62, x: 0.3, y: 0.16, ax: 0.05, ay: 0.04, sp: 0.9, ph: 0 },
+      { c: '103, 153, 254', a: 0.24, r: 0.52, x: 0.72, y: 0.42, ax: 0.04, ay: 0.06, sp: 0.7, ph: 2.2 },
+      { c: '173, 199, 255', a: 0.12, r: 0.38, x: 0.55, y: 0.1, ax: 0.06, ay: 0.03, sp: 1.1, ph: 4.1 },
+      { c: '225, 236, 255', a: 0.07, r: 0.3, x: 0.12, y: 0.6, ax: 0.03, ay: 0.05, sp: 0.8, ph: 1.3 },
+    ];
+
+    const draw = (t: number) => {
+      if (!ctx || w === 0) return;
+      const base = ctx.createLinearGradient(0, 0, 0, h);
+      base.addColorStop(0, '#16244d');
+      base.addColorStop(0.45, '#101a38');
+      base.addColorStop(0.8, '#0a0a0a');
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = base;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.globalCompositeOperation = 'screen';
+      for (const b of blobs) {
+        const bx = (b.x + b.ax * Math.sin(t * b.sp + b.ph)) * w;
+        const by = (b.y + b.ay * Math.cos(t * b.sp * 0.9 + b.ph)) * h;
+        const r = b.r * Math.max(w, h * 1.2);
+        const g = ctx.createRadialGradient(bx, by, 0, bx, by, r);
+        g.addColorStop(0, `rgba(${b.c}, ${b.a})`);
+        g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      if (dots) {
+        // screen 叠加：点阵在暗部也隐约可见，与官网半调带一致
+        ctx.globalCompositeOperation = 'screen';
+        ctx.drawImage(dots, 0, 0);
+      }
+
+      ctx.globalCompositeOperation = 'source-over';
+      const fade = ctx.createLinearGradient(0, h * 0.7, 0, h);
+      fade.addColorStop(0, 'rgba(10, 10, 10, 0)');
+      fade.addColorStop(1, 'rgba(10, 10, 10, 1)');
+      ctx.fillStyle = fade;
+      ctx.fillRect(0, 0, w, h);
+      const side = ctx.createLinearGradient(0, 0, w * 0.5, 0);
+      side.addColorStop(0, 'rgba(8, 10, 18, 0.45)');
+      side.addColorStop(1, 'rgba(8, 10, 18, 0)');
+      ctx.fillStyle = side;
+      ctx.fillRect(0, 0, w, h);
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    if (reduced) {
+      draw(1.7);
+    } else {
+      let raf = 0;
+      let last = 0;
+      const t0 = performance.now();
+      const loop = (now: number) => {
+        raf = requestAnimationFrame(loop);
+        if (document.hidden || now - last < 33) return;
+        last = now;
+        draw((now - t0) / 1000);
+      };
+      raf = requestAnimationFrame(loop);
+      window.addEventListener('pagehide', () => cancelAnimationFrame(raf), { once: true });
+    }
+  }
 </script>

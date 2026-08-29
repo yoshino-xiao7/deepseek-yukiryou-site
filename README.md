@@ -4,7 +4,7 @@
 
 - 线上地址：<https://deepseek.yukiryou.icu>
 - 技术栈：[Astro](https://astro.build)（静态站点）+ [@astrojs/sitemap](https://docs.astro.build/en/guides/integrations-guide/sitemap/)
-- 视觉：对齐 [DeepSeek Harness 官网](https://www.deepseek.com/harness/) 的设计令牌（深色 `#0a0a0a`、DS 间距/圆角标尺、白底 pill 主按钮、等宽 eyebrow 标签），字体自托管（DM Sans / Montserrat / Fragment Mono）
+- 视觉：对齐 [DeepSeek Harness 官网](https://www.deepseek.com/harness/) 的设计令牌（深色 `#0a0a0a`、DS 间距/圆角标尺、白底 pill 主按钮、等宽 eyebrow 标签），并复刻其两项标志性视觉：首屏深蓝流体 + 半调点阵的 Canvas 氛围层（`Hero.astro` 内置，尊重 `prefers-reduced-motion` 画静帧）、概念区品牌蓝像素字（自托管 Silkscreen，对应官网 "Edit Undo"），字体自托管（DM Sans / Montserrat / Fragment Mono / Silkscreen）
 - 语言：简体中文（默认，挂 `/`）+ English（挂 `/en/`）
 - 部署：腾讯 EdgeOne 静态托管，`dist/` 目录直接上传
 
@@ -47,10 +47,13 @@ pnpm assets         # 重新生成图标与 OG 封面图（需要 sips 与 Pillo
     ├── scripts/downloads.ts  # 下载中心客户端逻辑（实时代理 > 内联配置 > 同域静态）
     ├── layouts/Base.astro    # 基础布局：完整 SEO head（canonical/hreflang/OG/JSON-LD）
     ├── components/           # 页面区块组件
-    │   ├── Hero.astro        # 首屏：两栏 + 带 Tab 的终端卡（可复制命令）
-    │   ├── Concept.astro     # 概念区：eyebrow + 三张等宽标签卡
-    │   ├── Approach.astro    # 设计理念：条目式左文右图
-    │   └── Platforms.astro   # 平台切换：macOS / Windows 两个 Tab
+    │   ├── Hero.astro        # 首屏：两栏 + Canvas 流体/点阵背景 + 带 Tab 的终端卡（可复制命令）
+    │   ├── Concept.astro     # 概念区：eyebrow + 像素字 HARNESS + 三张等宽标签卡
+    │   ├── Approach.astro    # 设计理念：01 媒体行（左文右图）+ 其余条目双列卡
+    │   ├── Platforms.astro   # （暂未挂载）平台切换 Tab，备用区块
+    │   ├── HowItWorks.astro  # （暂未挂载）工作原理流程，备用区块
+    │   ├── Roadmap.astro     # （暂未挂载）路线图，备用区块
+    │   └── ...               # Features / Why / Install / Security / Faq / Cta / Header / Footer / Download / Icon
     ├── pages/index.astro     # 简体中文首页（/）
     ├── pages/en/index.astro  # English 首页（/en/）
     ├── pages/404.astro       # 404 页（按浏览器语言切换文案）

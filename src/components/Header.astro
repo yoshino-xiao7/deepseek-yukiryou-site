@@ -14,12 +14,11 @@ interface Props {
 
 const { lang, dict } = Astro.props;
 
+// 官网导航极简：只保留四个主锚点，其余入口放页脚与安装区
 const navItems = [
   { href: '#concept', label: dict.nav.concept },
   { href: '#features', label: dict.nav.features },
-  { href: '#why', label: dict.nav.why },
   { href: '#install', label: dict.nav.install },
-  { href: '#security', label: dict.nav.security },
   { href: '#faq', label: dict.nav.faq },
 ];
 
@@ -31,6 +30,7 @@ const home = lang === 'zh-CN' ? '/' : '/en/';
     <a class="brand" href={home} aria-label="DeepSeek YukiRyou">
       <img class="brand-logo" src={PROJECT.icon} alt="" width="26" height="26" loading="eager" />
       <span class="brand-name">DeepSeek&nbsp;YukiRyou</span>
+      <span class="brand-tag" aria-hidden="true">Harness</span>
     </a>
 
     <nav class="nav-desktop" aria-label="Main">
@@ -45,7 +45,7 @@ const home = lang === 'zh-CN' ? '/' : '/en/';
         <a class:list={['locale-item', lang === 'en' && 'is-active']} href="/en/">EN</a>
       </div>
       <div class="header-dl">
-        <Download dict={dict} variant="nav" />
+        <Download dict={dict} variant="nav" menu={false} />
       </div>
       <button
         class="nav-toggle"
@@ -173,6 +173,26 @@ const home = lang === 'zh-CN' ? '/' : '/en/';
     font-weight: 500;
     letter-spacing: -0.01em;
     white-space: nowrap;
+  }
+
+  /* 品牌旁等宽小胶囊（对齐 harness 官网 logo 旁的 "Harness" 标签） */
+  .brand-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.95);
+    padding: 5px 9px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 479px) {
+    .brand-tag {
+      display: none;
+    }
   }
 
   .nav-desktop {
@@ -329,8 +349,8 @@ const home = lang === 'zh-CN' ? '/' : '/en/';
     border-top: 1px solid var(--border-subtle);
   }
 
-  /* 1280 起才切桌面导航：英文文案更长，1024 会把胶囊挤成两行 */
-  @media (min-width: 1280px) {
+  /* 导航精简到四项后 1024 即可容纳（含英文文案） */
+  @media (min-width: 1024px) {
     .nav-desktop,
     .header-dl {
       display: flex;

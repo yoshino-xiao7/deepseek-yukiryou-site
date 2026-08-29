@@ -20,9 +20,11 @@ interface Props {
   dict: Dict;
   /** lg / sm / nav / block：导航用 nav，全宽用 block */
   variant?: 'lg' | 'sm' | 'nav' | 'block';
+  /** 是否渲染「其他下载」下拉；导航条空间紧张时可关掉（安装区/移动菜单仍提供全部入口） */
+  menu?: boolean;
 }
 
-const { dict, variant = 'lg' } = Astro.props;
+const { dict, variant = 'lg', menu = true } = Astro.props;
 
 const sizeClass =
   variant === 'lg'
@@ -81,72 +83,74 @@ const mainHref = hrefOf(macPrimary);
     </span>
   </a>
 
-  <div class="dl-wrap" data-dl-wrap>
-    <button
-      type="button"
-      class:list={['btn', 'btn-secondary', sizeClass, 'dl-toggle']}
-      data-dl-toggle
-      aria-haspopup="true"
-      aria-expanded="false"
-      aria-label={variant === 'nav' ? dict.download.menu : undefined}
-    >
-      <Icon name="list" size={iconSize} />
-      {/* 导航条空间紧张（英文更长），只留图标 + 箭头，文字挪到 aria-label */}
-      {variant === 'nav' ? null : <span>{dict.download.menu}</span>}
-      <Icon name="chevron-down" size={13} />
-    </button>
+  {menu && (
+    <div class="dl-wrap" data-dl-wrap>
+      <button
+        type="button"
+        class:list={['btn', 'btn-secondary', sizeClass, 'dl-toggle']}
+        data-dl-toggle
+        aria-haspopup="true"
+        aria-expanded="false"
+        aria-label={variant === 'nav' ? dict.download.menu : undefined}
+      >
+        <Icon name="list" size={iconSize} />
+        {/* 导航条空间紧张（英文更长），只留图标 + 箭头，文字挪到 aria-label */}
+        {variant === 'nav' ? null : <span>{dict.download.menu}</span>}
+        <Icon name="chevron-down" size={13} />
+      </button>
 
-    <div class:list={['dl-menu', menuClass]} data-dl-menu hidden>
-      <a
-        class="dl-item"
-        href={hrefOf(macPrimary)}
-        data-dl-link
-        data-platform="darwin-arm64"
-        data-kind="primary"
-      >
-        <span>{dict.download.macDmg}</span>
-        <span class="dl-item-meta" data-dl-meta hidden={!metaOf(macPrimary)}>{metaOf(macPrimary)}</span>
-      </a>
-      <a
-        class="dl-item"
-        href={hrefOf(macAlternative)}
-        data-dl-link
-        data-platform="darwin-arm64"
-        data-kind="alternative"
-      >
-        <span>{dict.download.macZip}</span>
-        <span class="dl-item-meta" data-dl-meta hidden={!metaOf(macAlternative)}>{metaOf(macAlternative)}</span>
-      </a>
-      <a
-        class="dl-item"
-        href={hrefOf(winPrimary)}
-        data-dl-link
-        data-platform="win32-x64"
-        data-kind="primary"
-      >
-        <span>{dict.download.windowsSetup}</span>
-        <span class="dl-item-meta" data-dl-meta hidden={!metaOf(winPrimary)}>{metaOf(winPrimary)}</span>
-      </a>
-      <a
-        class="dl-item"
-        href={hrefOf(winAlternative)}
-        data-dl-link
-        data-platform="win32-x64"
-        data-kind="alternative"
-      >
-        <span>{dict.download.windowsPortable}</span>
-        <span class="dl-item-meta" data-dl-meta hidden={!metaOf(winAlternative)}>{metaOf(winAlternative)}</span>
-      </a>
+      <div class:list={['dl-menu', menuClass]} data-dl-menu hidden>
+        <a
+          class="dl-item"
+          href={hrefOf(macPrimary)}
+          data-dl-link
+          data-platform="darwin-arm64"
+          data-kind="primary"
+        >
+          <span>{dict.download.macDmg}</span>
+          <span class="dl-item-meta" data-dl-meta hidden={!metaOf(macPrimary)}>{metaOf(macPrimary)}</span>
+        </a>
+        <a
+          class="dl-item"
+          href={hrefOf(macAlternative)}
+          data-dl-link
+          data-platform="darwin-arm64"
+          data-kind="alternative"
+        >
+          <span>{dict.download.macZip}</span>
+          <span class="dl-item-meta" data-dl-meta hidden={!metaOf(macAlternative)}>{metaOf(macAlternative)}</span>
+        </a>
+        <a
+          class="dl-item"
+          href={hrefOf(winPrimary)}
+          data-dl-link
+          data-platform="win32-x64"
+          data-kind="primary"
+        >
+          <span>{dict.download.windowsSetup}</span>
+          <span class="dl-item-meta" data-dl-meta hidden={!metaOf(winPrimary)}>{metaOf(winPrimary)}</span>
+        </a>
+        <a
+          class="dl-item"
+          href={hrefOf(winAlternative)}
+          data-dl-link
+          data-platform="win32-x64"
+          data-kind="alternative"
+        >
+          <span>{dict.download.windowsPortable}</span>
+          <span class="dl-item-meta" data-dl-meta hidden={!metaOf(winAlternative)}>{metaOf(winAlternative)}</span>
+        </a>
 
-      <div class="dl-divider" role="separator"></div>
-      <a class="dl-item dl-item--github" href={PROJECT.latest}>
-        <span>
-          <Icon name="github" size={13} />
-          {dict.download.github}
-        </span>
-      </a>
+        <div class="dl-divider" role="separator"></div>
+        <a class="dl-item dl-item--github" href={PROJECT.latest}>
+          <span>
+            <Icon name="github" size={13} />
+            {dict.download.github}
+          </span>
+        </a>
+      </div>
     </div>
-  </div>
+  )}
 </div>
 
 <style>

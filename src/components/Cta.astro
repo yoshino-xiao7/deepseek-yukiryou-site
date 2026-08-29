@@ -20,7 +20,7 @@ const { dict } = Astro.props;
 
     <div class="cta-actions">
       <Download dict={dict} variant="lg" />
-      <a class="btn btn-secondary btn-m" href={PROJECT.repo}>
+      <a class="btn btn-ghost btn-m" href={PROJECT.repo}>
         <Icon name="star" size={16} />
         {dict.cta.star}
       </a>
@@ -38,15 +38,15 @@ const { dict } = Astro.props;
     overflow: hidden;
   }
 
-  /* 顶部品牌辉光，呼应官网收尾区的柔光背景 */
+  /* 底部品牌辉光，呼应官网收尾区的柔光背景 */
   .cta::before {
     content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
     background: radial-gradient(
-      58% 62% at 50% 100%,
-      rgba(var(--rgb-brand), 0.16),
+      62% 70% at 50% 106%,
+      rgba(var(--rgb-brand), 0.22),
       transparent 72%
     );
   }
