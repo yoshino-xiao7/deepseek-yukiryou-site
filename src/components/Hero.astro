@@ -474,32 +474,108 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
     const ctx = backdrop.getContext('2d');
     const heroSection = backdrop.parentElement;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // 触屏没有悬停，官方同款判断：这类设备不驱动交互点阵
+    const coarsePointer = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 
     let w = 0;
     let h = 0;
-    let dots: HTMLCanvasElement | null = null;
+    let dpr = 1;
 
-    const paintDots = () => {
-      dots = document.createElement('canvas');
-      dots.width = Math.max(1, Math.ceil(w));
-      dots.height = Math.max(1, Math.ceil(h));
-      const dctx = dots.getContext('2d');
-      if (!dctx) return;
-      const gap = Math.max(13, Math.round(w / 100));
-      const y0 = h * 0.24;
-      const y1 = h * 0.72;
-      for (let y = y0; y <= y1; y += gap) {
-        const band = Math.sin(((y - y0) / (y1 - y0)) * Math.PI);
-        for (let x = 0; x <= w; x += gap) {
-          const ripple = 0.55 + 0.45 * Math.sin(x * 0.012 + y * 0.028);
-          const a = 0.28 * band * ripple;
-          if (a <= 0.02) continue;
-          dctx.beginPath();
-          dctx.fillStyle = `rgba(198, 216, 255, ${a.toFixed(3)})`;
-          dctx.arc(x, y, 1.3, 0, Math.PI * 2);
-          dctx.fill();
+    /**
+     * 交互点阵网格：物理常量与 harness 官网点阵层一致 —
+     * 90px 间距；光标 140px 内斥力 (1-d/140)*3/帧；弹簧回弹 0.05；
+     * 阻尼 0.85；相邻点拉伸 ≥20px 断线；靠近光标的点变大变亮。
+     */
+    interface GridDot {
+      rx: number;
+      ry: number;
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+    }
+    let grid: GridDot[] = [];
+    let gCols = 0;
+    let gRows = 0;
+    let mouseX = NaN;
+    let mouseY = NaN;
+
+    const initGrid = () => {
+      const gap = 90;
+      gCols = Math.ceil(w / gap) + 1;
+      gRows = Math.ceil(h / gap) + 1;
+      const ox = (w - (gCols - 1) * gap) / 2;
+      const oy = (h - (gRows - 1) * gap) / 2;
+      grid = [];
+      for (let r = 0; r < gRows; r++) {
+        for (let c = 0; c < gCols; c++) {
+          const rx = ox + gap * c;
+          const ry = oy + gap * r;
+          grid.push({ rx, ry, x: rx, y: ry, vx: 0, vy: 0 });
         }
       }
+    };
+
+    const drawGrid = () => {
+      if (!ctx || grid.length === 0) return;
+      const hasMouse = !Number.isNaN(mouseX);
+      // 丝带以 screen 叠加收尾，点阵/连线走正常合成（官方同款）
+      ctx.globalCompositeOperation = 'source-over';
+
+      for (const p of grid) {
+        if (hasMouse) {
+          const dx = p.x - mouseX;
+          const dy = p.y - mouseY;
+          const d = Math.hypot(dx, dy);
+          if (d < 140 && d > 0.1) {
+            const f = (1 - d / 140) * 3;
+            p.vx += (dx / d) * f;
+            p.vy += (dy / d) * f;
+          }
+        }
+        p.vx += (p.rx - p.x) * 0.05;
+        p.vy += (p.ry - p.y) * 0.05;
+        p.vx *= 0.85;
+        p.vy *= 0.85;
+        p.x += p.vx;
+        p.y += p.vy;
+      }
+
+      ctx.lineWidth = 0.5;
+      // 官网点阵为深底调色（rgba(60,100,160)），本站丝带更亮，改用冷蓝浅色保持对比
+      ctx.strokeStyle = 'rgba(174, 198, 246, 0.12)';
+      ctx.beginPath();
+      const link = (a: GridDot, b: GridDot) => {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 20 || d === 0) return;
+        const ux = dx / d;
+        const uy = dy / d;
+        ctx.moveTo(a.x + 10 * ux, a.y + 10 * uy);
+        ctx.lineTo(b.x - 10 * ux, b.y - 10 * uy);
+      };
+      for (let r = 0; r < gRows; r++) {
+        for (let c = 0; c < gCols - 1; c++) link(grid[r * gCols + c], grid[r * gCols + c + 1]);
+      }
+      for (let c = 0; c < gCols; c++) {
+        for (let r = 0; r < gRows - 1; r++) link(grid[r * gCols + c], grid[(r + 1) * gCols + c]);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgb(174, 198, 246)';
+      for (const p of grid) {
+        let half = 1.8;
+        let alpha = 0.28;
+        if (hasMouse) {
+          const l = Math.max(0, 1 - Math.hypot(p.x - mouseX, p.y - mouseY) / 140);
+          half = 1.8 + 2 * l;
+          alpha = 0.28 + 0.45 * l;
+        }
+        ctx.globalAlpha = alpha;
+        ctx.fillRect(p.x - half, p.y - half, half * 2, half * 2);
+      }
+      ctx.globalAlpha = 1;
     };
 
     const resize = () => {
@@ -507,9 +583,12 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
       const rect = heroSection.getBoundingClientRect();
       w = rect.width;
       h = rect.height;
-      backdrop.width = Math.max(1, Math.round(w));
-      backdrop.height = Math.max(1, Math.round(h));
-      paintDots();
+      // 内容是柔焦渐变 + 细点阵：DPR 上限 1.5，精度与填充开销的平衡点（与官方 fluid 层一致）
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      backdrop.width = Math.max(1, Math.round(w * dpr));
+      backdrop.height = Math.max(1, Math.round(h * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      initGrid();
     };
 
     /**
@@ -562,11 +641,7 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
         ctx.restore();
       }
 
-      if (dots) {
-        // screen 叠加：点阵在暗部也隐约可见，与官网半调带一致
-        ctx.globalCompositeOperation = 'screen';
-        ctx.drawImage(dots, 0, 0);
-      }
+      drawGrid();
 
       ctx.globalCompositeOperation = 'source-over';
       const fade = ctx.createLinearGradient(0, h * 0.7, 0, h);
@@ -583,6 +658,28 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
 
     resize();
     window.addEventListener('resize', resize);
+
+    // 鼠标驱动交互点阵：只在可悬停设备且未开启减少动态效果时挂监听；
+    // 坐标相对首屏，鼠标移出首屏区域后点阵自然回弹归位
+    if (!reduced && !coarsePointer) {
+      window.addEventListener(
+        'mousemove',
+        (e) => {
+          if (!heroSection) return;
+          const rect = heroSection.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          if (x >= 0 && y >= 0 && x <= rect.width && y <= rect.height) {
+            mouseX = x;
+            mouseY = y;
+          } else {
+            mouseX = NaN;
+            mouseY = NaN;
+          }
+        },
+        { passive: true }
+      );
+    }
 
     if (reduced) {
       draw(1.7);

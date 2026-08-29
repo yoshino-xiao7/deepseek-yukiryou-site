@@ -4,7 +4,7 @@
 
 - 线上地址：<https://deepseek.yukiryou.icu>
 - 技术栈：[Astro](https://astro.build)（静态站点）+ [@astrojs/sitemap](https://docs.astro.build/en/guides/integrations-guide/sitemap/)
-- 视觉：对齐 [DeepSeek Harness 官网](https://www.deepseek.com/harness/) 的设计令牌（深色 `#0a0a0a`、DS 间距/圆角标尺、白底 pill 主按钮、等宽 eyebrow 标签），并复刻其两项标志性视觉：首屏深蓝流体 + 半调点阵的 Canvas 氛围层（`Hero.astro` 内置，尊重 `prefers-reduced-motion` 画静帧）、概念区品牌蓝像素字（自托管 Silkscreen，对应官网 "Edit Undo"），字体自托管（DM Sans / Montserrat / Fragment Mono / Silkscreen）
+- 视觉：对齐 [DeepSeek Harness 官网](https://www.deepseek.com/harness/) 的设计令牌（深色 `#0a0a0a`、DS 间距/圆角标尺、白底 pill 主按钮、等宽 eyebrow 标签），并复刻其两项标志性视觉：首屏深蓝流体丝带 + 可交互点阵网格的 Canvas 氛围层（鼠标靠近时格点被推挤、变亮并回弹，物理参数与官方点阵层一致；触屏设备与 `prefers-reduced-motion` 下静帧呈现）、概念区品牌蓝像素字（自托管 Silkscreen，对应官网 "Edit Undo"），字体自托管（DM Sans / Montserrat / Fragment Mono / Silkscreen）
 - 语言：简体中文（默认，挂 `/`）+ English（挂 `/en/`）
 - 部署：腾讯 EdgeOne 静态托管，`dist/` 目录直接上传
 
