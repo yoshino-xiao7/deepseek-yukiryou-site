@@ -31,6 +31,7 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
 ---
 
 <section class="hero">
+  <canvas class="hero-canvas" data-hero-fluid aria-hidden="true"></canvas>
   <canvas class="hero-canvas" data-hero-canvas aria-hidden="true"></canvas>
   <div class="container hero-inner">
     <div class="hero-copy">
@@ -464,28 +465,179 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
   });
 
   /**
-   * 首屏背景：海军蓝底色 + 缓慢漂移的蓝色光斑（screen 叠加）
-   * + 中部半调点阵（overlay，只在亮处显现）+ 底部/左侧渐隐回页面黑。
-   * 对齐 harness 官网的全屏 canvas 氛围层；内容均为柔和渐变，
-   * 固定按 CSS 像素 1x 渲染，30fps 节流，减少动态效果时只画静帧。
+   * 首屏背景 = 两层 canvas：
+   * 1) data-hero-fluid —— WebGL flowmap 流体。可调参数取自 harness 官网流体层：
+   *    五段色带 黑→#1A3870→#204a7e→#eed8aa→黑、光晕 #fff7d1/#538dca/#2d448b、
+   *    swirl 12 次迭代、scale 1.77、speed 0.28、vignette 0.38、grain 0.005；
+   *    鼠标把速度“刷”进流场纹理（半径 0.09、强度 1.8、衰减 0.925），渲染时
+   *    流体 UV 被流场扭曲，即官网“划动搅动流体”的效果；光晕横向跟随鼠标
+   *    （lightFollow 0.63）。WebGL 不可用时同画布回退 2D 丝带绘制。
+   * 2) data-hero-canvas —— 交互点阵网格（官方同款物理，透明底）。
+   * 两层共用一条 30fps 主循环，滚出视口暂停；prefers-reduced-motion 画静帧。
    */
-  const backdrop = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
-  if (backdrop) {
-    const ctx = backdrop.getContext('2d');
-    const heroSection = backdrop.parentElement;
+  const fluidCanvas = document.querySelector<HTMLCanvasElement>('[data-hero-fluid]');
+  const gridCanvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
+  const heroSection = fluidCanvas?.parentElement ?? null;
+
+  if (fluidCanvas && gridCanvas && heroSection) {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // 触屏没有悬停，官方同款判断：这类设备不驱动交互点阵
+    // 触屏没有悬停，官方同款判断：这类设备不驱动鼠标交互
     const coarsePointer = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 
     let w = 0;
     let h = 0;
     let dpr = 1;
+    let visible = true;
+    let pointerIn = false;
+    // 归一化鼠标（y 向上）+ 官方同款平滑/速度链
+    let mx = 0.5;
+    let my = 0.5;
+    let smx = 0.5;
+    let smy = 0.5;
+    let svx = 0;
+    let svy = 0;
+    // 点阵用像素坐标（相对首屏）
+    let gmx = NaN;
+    let gmy = NaN;
 
-    /**
-     * 交互点阵网格：物理常量与 harness 官网点阵层一致 —
-     * 90px 间距；光标 140px 内斥力 (1-d/140)*3/帧；弹簧回弹 0.05；
-     * 阻尼 0.85；相邻点拉伸 ≥20px 断线；靠近光标的点变大变亮。
-     */
+    if (!reduced && !coarsePointer) {
+      window.addEventListener(
+        'mousemove',
+        (e) => {
+          const rect = heroSection.getBoundingClientRect();
+          const inside =
+            e.clientX >= rect.left &&
+            e.clientX <= rect.right &&
+            e.clientY >= rect.top &&
+            e.clientY <= rect.bottom;
+          pointerIn = inside;
+          if (!inside) {
+            gmx = NaN;
+            gmy = NaN;
+            return;
+          }
+          const px = e.clientX - rect.left;
+          const py = e.clientY - rect.top;
+          mx = px / rect.width;
+          my = 1 - py / rect.height;
+          gmx = px;
+          gmy = py;
+        },
+        { passive: true }
+      );
+    }
+
+    /* ========== 层 1：流体 ========== */
+
+    const VS = `attribute vec2 aPos;
+varying vec2 vUv;
+void main(){ vUv = aPos * 0.5 + 0.5; gl_Position = vec4(aPos, 0.0, 1.0); }`;
+
+    // 流场纹理 ping-pong：把鼠标速度以高斯笔刷注入，乘衰减向中性值回落
+    const SPLAT_FS = `precision highp float;
+varying vec2 vUv;
+uniform sampler2D uPrev;
+uniform vec2 uMouse;
+uniform vec2 uVel;
+uniform float uRadius;
+uniform float uStrength;
+uniform float uDecay;
+uniform float uAspect;
+void main(){
+  vec2 f = texture2D(uPrev, vUv).xy * 2.0 - 1.0;
+  f *= uDecay;
+  vec2 d = vUv - uMouse;
+  d.x *= uAspect;
+  float g = exp(-dot(d, d) / (uRadius * uRadius));
+  f += uVel * g * uStrength * 0.5;
+  gl_FragColor = vec4(f * 0.5 + 0.5, 0.0, 1.0);
+}`;
+
+    // 渲染：swirl 迭代 + fbm 域扭曲 + 流场扰动，映到五段色带；
+    // 光晕（核/晕/外圈）横向跟随鼠标；亮带泛光 + 暗角 + 颗粒 + 底部渐隐
+    const RENDER_FS = `precision highp float;
+varying vec2 vUv;
+uniform sampler2D uFlow;
+uniform vec2 uRes;
+uniform float uTime;
+uniform float uAspect;
+uniform vec2 uLight;
+uniform vec3 uC1;
+uniform vec3 uC2;
+uniform vec3 uC3;
+uniform vec3 uC4;
+uniform vec3 uC5;
+uniform vec3 uG1;
+uniform vec3 uG2;
+uniform vec3 uG3;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+float vnoise(vec2 p){
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+}
+float fbm(vec2 p){
+  float v = 0.0;
+  float a = 0.5;
+  for(int i = 0; i < 5; i++){
+    v += a * vnoise(p);
+    p = p * 2.02 + vec2(3.1, 7.7);
+    a *= 0.5;
+  }
+  return v;
+}
+vec2 swirl(vec2 p, float t){
+  for(int i = 0; i < 12; i++){
+    float fi = float(i);
+    vec2 c = vec2(0.5 + 0.38 * sin(t * 0.31 + fi * 1.7), 0.5 + 0.34 * cos(t * 0.23 + fi * 2.4));
+    vec2 d = p - c;
+    float fall = exp(-dot(d, d) * 1.6);
+    float a = 0.32 * fall * sin(t * 0.35 + fi * 2.1);
+    float ca = cos(a);
+    float sa = sin(a);
+    p = c + mat2(ca, -sa, sa, ca) * d;
+  }
+  return p;
+}
+vec3 pal(float t){
+  t = clamp(t, 0.0, 1.0);
+  vec3 c = mix(uC1, uC2, smoothstep(0.0, 0.3, t));
+  c = mix(c, uC3, smoothstep(0.3, 0.55, t));
+  c = mix(c, uC4, smoothstep(0.55, 0.78, t));
+  c = mix(c, uC5, smoothstep(0.82, 1.0, t));
+  return c;
+}
+void main(){
+  vec2 uv = vUv;
+  vec2 flow = texture2D(uFlow, uv).xy * 2.0 - 1.0;
+  vec2 p = vec2(uv.x * uAspect, uv.y);
+  p += vec2(-0.62, -0.24);
+  p *= 1.77;
+  p = swirl(p, uTime);
+  float t5 = uTime * 0.05;
+  p += (vec2(fbm(p * 1.4 + t5), fbm(p * 1.4 - t5 + 5.2)) - 0.5) * 0.55;
+  p += flow * 0.9;
+  float v = fbm(p * 0.85 + t5 * 1.3);
+  vec3 col = pal(v);
+  col += smoothstep(0.61, 0.79, v) * 0.22 * vec3(1.0, 0.93, 0.75);
+  vec2 ld = uv - uLight;
+  ld.x *= uAspect;
+  float l2 = dot(ld, ld);
+  col += uG1 * exp(-l2 / 0.008) * 0.5;
+  col += uG2 * exp(-l2 / 0.05) * 0.16;
+  col += uG3 * exp(-l2 / 0.18) * 0.13;
+  vec2 q = uv - 0.5;
+  col *= 1.0 - 0.38 * smoothstep(0.12, 0.58, dot(q, q));
+  col = mix(col, vec3(0.039), smoothstep(0.42, -0.02, uv.y));
+  col += (hash(uv * uRes + fract(uTime) * 7.0) - 0.5) * 0.006;
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+    const ctx = gridCanvas.getContext('2d');
+
+    /* ---- 交互点阵网格：物理常量与 harness 官网点阵层一致 ---- */
     interface GridDot {
       rx: number;
       ry: number;
@@ -497,8 +649,6 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
     let grid: GridDot[] = [];
     let gCols = 0;
     let gRows = 0;
-    let mouseX = NaN;
-    let mouseY = NaN;
 
     const initGrid = () => {
       const gap = 90;
@@ -516,16 +666,15 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
       }
     };
 
-    const drawGrid = () => {
-      if (!ctx || grid.length === 0) return;
-      const hasMouse = !Number.isNaN(mouseX);
-      // 丝带以 screen 叠加收尾，点阵/连线走正常合成（官方同款）
-      ctx.globalCompositeOperation = 'source-over';
+    const drawGridFrame = () => {
+      if (!ctx || grid.length === 0 || w === 0) return;
+      ctx.clearRect(0, 0, w, h);
+      const hasMouse = !Number.isNaN(gmx);
 
       for (const p of grid) {
         if (hasMouse) {
-          const dx = p.x - mouseX;
-          const dy = p.y - mouseY;
+          const dx = p.x - gmx;
+          const dy = p.y - gmy;
           const d = Math.hypot(dx, dy);
           if (d < 140 && d > 0.1) {
             const f = (1 - d / 140) * 3;
@@ -542,7 +691,7 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
       }
 
       ctx.lineWidth = 0.5;
-      // 官网点阵为深底调色（rgba(60,100,160)），本站丝带更亮，改用冷蓝浅色保持对比
+      // 官网点阵为深底调色（rgba(60,100,160)），本站流体更亮，改用冷蓝浅色保持对比
       ctx.strokeStyle = 'rgba(174, 198, 246, 0.12)';
       ctx.beginPath();
       const link = (a: GridDot, b: GridDot) => {
@@ -568,7 +717,7 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
         let half = 1.8;
         let alpha = 0.28;
         if (hasMouse) {
-          const l = Math.max(0, 1 - Math.hypot(p.x - mouseX, p.y - mouseY) / 140);
+          const l = Math.max(0, 1 - Math.hypot(p.x - gmx, p.y - gmy) / 140);
           half = 1.8 + 2 * l;
           alpha = 0.28 + 0.45 * l;
         }
@@ -578,120 +727,255 @@ const termBlocks = CHECKSUM_TARGETS.map((target) => {
       ctx.globalAlpha = 1;
     };
 
-    const resize = () => {
-      if (!heroSection || !ctx) return;
-      const rect = heroSection.getBoundingClientRect();
-      w = rect.width;
-      h = rect.height;
-      // 内容是柔焦渐变 + 细点阵：DPR 上限 1.5，精度与填充开销的平衡点（与官方 fluid 层一致）
-      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      backdrop.width = Math.max(1, Math.round(w * dpr));
-      backdrop.height = Math.max(1, Math.round(h * dpr));
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      initGrid();
+    /* ---- WebGL 通路 ---- */
+    interface Fbo {
+      tex: WebGLTexture;
+      fbo: WebGLFramebuffer;
+    }
+    let gl: WebGLRenderingContext | null = null;
+    let splat: WebGLProgram | null = null;
+    let render: WebGLProgram | null = null;
+    let su: Record<string, WebGLUniformLocation | null> = {};
+    let ru: Record<string, WebGLUniformLocation | null> = {};
+    let simA: Fbo | null = null;
+    let simB: Fbo | null = null;
+    let simW = 0;
+    let simH = 0;
+
+    if (fluidCanvas) {
+      gl = (fluidCanvas.getContext('webgl') ??
+        fluidCanvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
+    }
+    // WebGL 不可用：同一画布退回 2D 丝带
+    const fluid2d = gl ? null : fluidCanvas.getContext('2d');
+
+    const makeProgram = (fs: string) => {
+      if (!gl) return null;
+      const compile = (type: number, src: string) => {
+        const sh = gl!.createShader(type)!;
+        gl!.shaderSource(sh, src);
+        gl!.compileShader(sh);
+        return sh;
+      };
+      const p = gl.createProgram();
+      gl.attachShader(p, compile(gl.VERTEX_SHADER, VS));
+      gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+      gl.bindAttribLocation(p, 0, 'aPos');
+      gl.linkProgram(p);
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) return null;
+      return p;
     };
 
-    /**
-     * 丝带光斑：用「旋转椭圆 + 径向渐变」模拟官网的蓝色流体绸带。
-     * screen 叠加让多束丝带提亮交汇处；角度与位置随时间缓慢摆动，
-     * 静止截图是绸带构图，盯几秒能看到流动。
-     */
+    const makeFbo = (fw: number, fh: number): Fbo | null => {
+      if (!gl) return null;
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, fw, fh, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      const fbo = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      gl.clearColor(0.5, 0.5, 0.5, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      return { tex: tex!, fbo: fbo! };
+    };
+
+    const hex = (v: string): [number, number, number] => [
+      parseInt(v.slice(1, 3), 16) / 255,
+      parseInt(v.slice(3, 5), 16) / 255,
+      parseInt(v.slice(5, 7), 16) / 255,
+    ];
+
+    let fluidReady = false;
+
+    if (gl) {
+      splat = makeProgram(SPLAT_FS);
+      render = makeProgram(RENDER_FS);
+      if (!splat || !render) {
+        gl = null;
+      } else {
+        const quad = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        const loc = (p: WebGLProgram, names: string[]) => {
+          const m: Record<string, WebGLUniformLocation | null> = {};
+          for (const n of names) m[n] = gl!.getUniformLocation(p, n);
+          return m;
+        };
+        su = loc(splat, ['uPrev', 'uMouse', 'uVel', 'uRadius', 'uStrength', 'uDecay', 'uAspect']);
+        ru = loc(render, [
+          'uFlow', 'uRes', 'uTime', 'uAspect', 'uLight',
+          'uC1', 'uC2', 'uC3', 'uC4', 'uC5', 'uG1', 'uG2', 'uG3',
+        ]);
+      }
+    }
+
+    const sizeSim = () => {
+      if (!gl) return;
+      simW = Math.max(1, Math.round(w / 2));
+      simH = Math.max(1, Math.round(h / 2));
+      simA = makeFbo(simW, simH);
+      simB = makeFbo(simW, simH);
+    };
+
+    /** 官网流体层参数（type:"fluid" 全套取值） */
+    const drawFluidGL = (t: number) => {
+      if (!gl || !splat || !render || !simA || !simB) return;
+      // 1) 鼠标速度刷进流场（衰减恒定作用，静置时流场慢慢归零）
+      gl.useProgram(splat);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, simA.tex);
+      gl.uniform1i(su.uPrev!, 0);
+      gl.uniform2f(su.uMouse!, smx, smy);
+      gl.uniform2f(su.uVel!, svx, svy);
+      gl.uniform1f(su.uRadius!, 0.09);
+      gl.uniform1f(su.uStrength!, pointerIn && visible ? 1.8 : 0);
+      gl.uniform1f(su.uDecay!, 0.925);
+      gl.uniform1f(su.uAspect!, w / h);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, simB.fbo);
+      gl.viewport(0, 0, simW, simH);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      [simA, simB] = [simB, simA];
+
+      // 2) 渲染到屏幕
+      gl.useProgram(render);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, simA.tex);
+      gl.uniform1i(ru.uFlow!, 0);
+      gl.uniform2f(ru.uRes!, fluidCanvas!.width, fluidCanvas!.height);
+      gl.uniform1f(ru.uTime!, t);
+      gl.uniform1f(ru.uAspect!, w / h);
+      // 光晕横向跟随鼠标（lightFollow 0.63），纵向固定
+      gl.uniform2f(ru.uLight!, 0.89 + (pointerIn ? (smx - 0.89) * 0.63 : 0), 0.46);
+      const pal = [
+        ['#000000', 'uC1'], ['#1A3870', 'uC2'], ['#204a7e', 'uC3'],
+        ['#eed8aa', 'uC4'], ['#000000', 'uC5'],
+      ] as const;
+      for (const [hexv, name] of pal) {
+        const [r, g2, b] = hex(hexv);
+        gl.uniform3f(ru[name]!, r, g2, b);
+      }
+      const glow = [
+        ['#fff7d1', 'uG1'], ['#538dca', 'uG2'], ['#2d448b', 'uG3'],
+      ] as const;
+      for (const [hexv, name] of glow) {
+        const [r, g2, b] = hex(hexv);
+        gl.uniform3f(ru[name]!, r, g2, b);
+      }
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, fluidCanvas!.width, fluidCanvas!.height);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    };
+
+    /* ---- 2D 回退：无 WebGL 时在流体画布上画丝带 ---- */
     const ribbons = [
-      // 亮白丝带：官网左上那道近白高光
       { c: '224, 238, 255', a: 0.16, rx: 0.78, ry: 0.2, x: 0.42, y: 0.24, ang: -0.5, da: 0.1, dx: 0.05, dy: 0.03, sp: 0.42, ph: 0 },
-      // 主蓝绸带：横贯中部
       { c: '96, 140, 255', a: 0.4, rx: 0.85, ry: 0.26, x: 0.5, y: 0.42, ang: -0.32, da: 0.08, dx: 0.04, dy: 0.05, sp: 0.36, ph: 2.1 },
-      // 深蓝宽绸带：右上向左下
       { c: '64, 106, 255', a: 0.34, rx: 0.95, ry: 0.34, x: 0.62, y: 0.3, ang: -0.75, da: 0.06, dx: 0.05, dy: 0.04, sp: 0.3, ph: 4.2 },
-      // 浅蓝丝带：右下
       { c: '150, 186, 255', a: 0.2, rx: 0.6, ry: 0.22, x: 0.78, y: 0.62, ang: -0.15, da: 0.09, dx: 0.03, dy: 0.06, sp: 0.4, ph: 1.2 },
-      // 淡青高光：左中
       { c: '205, 224, 255', a: 0.1, rx: 0.45, ry: 0.16, x: 0.18, y: 0.55, ang: -0.55, da: 0.08, dx: 0.04, dy: 0.03, sp: 0.45, ph: 5.3 },
     ];
 
-    const draw = (t: number) => {
-      if (!ctx || w === 0) return;
-      const base = ctx.createLinearGradient(0, 0, 0, h);
+    const drawFluid2d = (t: number) => {
+      if (!fluid2d || w === 0) return;
+      const base = fluid2d.createLinearGradient(0, 0, 0, h);
       base.addColorStop(0, '#1b2f63');
       base.addColorStop(0.42, '#12204a');
       base.addColorStop(0.78, '#0a0a0a');
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = base;
-      ctx.fillRect(0, 0, w, h);
-
+      fluid2d.globalCompositeOperation = 'source-over';
+      fluid2d.fillStyle = base;
+      fluid2d.fillRect(0, 0, w, h);
       const R = Math.max(w, h * 1.15);
-      ctx.globalCompositeOperation = 'screen';
+      fluid2d.globalCompositeOperation = 'screen';
       for (const rb of ribbons) {
         const cx = (rb.x + rb.dx * Math.sin(t * rb.sp + rb.ph)) * w;
         const cy = (rb.y + rb.dy * Math.cos(t * rb.sp * 0.9 + rb.ph)) * h;
         const angle = rb.ang + rb.da * Math.sin(t * rb.sp * 0.7 + rb.ph * 1.3);
         const rad = rb.rx * R;
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(angle);
-        ctx.scale(1, Math.max(rb.ry, 0.05));
-        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rad);
+        fluid2d.save();
+        fluid2d.translate(cx, cy);
+        fluid2d.rotate(angle);
+        fluid2d.scale(1, Math.max(rb.ry, 0.05));
+        const g = fluid2d.createRadialGradient(0, 0, 0, 0, 0, rad);
         g.addColorStop(0, `rgba(${rb.c}, ${rb.a})`);
         g.addColorStop(0.55, `rgba(${rb.c}, ${rb.a * 0.45})`);
         g.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(0, 0, rad, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+        fluid2d.fillStyle = g;
+        fluid2d.beginPath();
+        fluid2d.arc(0, 0, rad, 0, Math.PI * 2);
+        fluid2d.fill();
+        fluid2d.restore();
       }
-
-      drawGrid();
-
-      ctx.globalCompositeOperation = 'source-over';
-      const fade = ctx.createLinearGradient(0, h * 0.7, 0, h);
+      fluid2d.globalCompositeOperation = 'source-over';
+      const fade = fluid2d.createLinearGradient(0, h * 0.7, 0, h);
       fade.addColorStop(0, 'rgba(10, 10, 10, 0)');
       fade.addColorStop(1, 'rgba(10, 10, 10, 1)');
-      ctx.fillStyle = fade;
-      ctx.fillRect(0, 0, w, h);
-      const side = ctx.createLinearGradient(0, 0, w * 0.5, 0);
+      fluid2d.fillStyle = fade;
+      fluid2d.fillRect(0, 0, w, h);
+      const side = fluid2d.createLinearGradient(0, 0, w * 0.5, 0);
       side.addColorStop(0, 'rgba(8, 10, 18, 0.38)');
       side.addColorStop(1, 'rgba(8, 10, 18, 0)');
-      ctx.fillStyle = side;
-      ctx.fillRect(0, 0, w, h);
+      fluid2d.fillStyle = side;
+      fluid2d.fillRect(0, 0, w, h);
+    };
+
+    /* ---- 尺寸与主循环 ---- */
+    const resize = () => {
+      const rect = heroSection.getBoundingClientRect();
+      w = rect.width;
+      h = rect.height;
+      // 柔焦渐变 + 细点阵：DPR 上限 1.5（官方 fluid 层同款上限）
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      fluidCanvas.width = Math.max(1, Math.round(w * dpr));
+      fluidCanvas.height = Math.max(1, Math.round(h * dpr));
+      gridCanvas.width = fluidCanvas.width;
+      gridCanvas.height = fluidCanvas.height;
+      if (gl) {
+        gl.viewport(0, 0, fluidCanvas.width, fluidCanvas.height);
+        sizeSim();
+      }
+      if (fluid2d) fluid2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      initGrid();
+    };
+
+    const renderFrame = (tRaw: number) => {
+      if (gl) drawFluidGL(tRaw * 0.28);
+      else if (fluid2d) drawFluid2d(tRaw);
+      drawGridFrame();
     };
 
     resize();
     window.addEventListener('resize', resize);
 
-    // 鼠标驱动交互点阵：只在可悬停设备且未开启减少动态效果时挂监听；
-    // 坐标相对首屏，鼠标移出首屏区域后点阵自然回弹归位
-    if (!reduced && !coarsePointer) {
-      window.addEventListener(
-        'mousemove',
-        (e) => {
-          if (!heroSection) return;
-          const rect = heroSection.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          if (x >= 0 && y >= 0 && x <= rect.width && y <= rect.height) {
-            mouseX = x;
-            mouseY = y;
-          } else {
-            mouseX = NaN;
-            mouseY = NaN;
-          }
-        },
-        { passive: true }
-      );
-    }
+    new IntersectionObserver((entries) => {
+      visible = entries[0]?.isIntersecting ?? true;
+    }, { threshold: 0 }).observe(heroSection);
 
     if (reduced) {
-      draw(1.7);
+      renderFrame(1);
     } else {
       let raf = 0;
       let last = 0;
       const t0 = performance.now();
       const loop = (now: number) => {
         raf = requestAnimationFrame(loop);
-        if (document.hidden || now - last < 33) return;
+        if (!visible || document.hidden || now - last < 33) return;
         last = now;
-        draw((now - t0) / 1000);
+        // 官方同款平滑/速度链（mouseSmoothing 0.1 / mouseVelocity 0.2）
+        const psx = smx;
+        const psy = smy;
+        smx += (mx - smx) * 0.1;
+        smy += (my - smy) * 0.1;
+        svx += ((smx - psx) * 0.5 - svx) * 0.2;
+        svy += ((smy - psy) * 0.5 - svy) * 0.2;
+        renderFrame((now - t0) / 1000);
       };
       raf = requestAnimationFrame(loop);
       window.addEventListener('pagehide', () => cancelAnimationFrame(raf), { once: true });
