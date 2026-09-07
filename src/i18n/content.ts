@@ -355,8 +355,6 @@ export const t: Record<Lang, Dict> = {
         {
           title: '打开即用',
           desc: '不需要准备 Node、不需要记启动命令、不需要管端口。应用携带固定版本的运行时与 Harness 作为一个原子发布单元，双击图标即进入工作台；Harness 与本地界面异常时分别恢复，一个区域的故障不会拖垮整个窗口。',
-          image: '/app-screenshot.png',
-          imageAlt: 'DeepSeek YukiRyou 主界面：原生窗口中的 Harness 工作台',
         },
         {
           title: '每次变更都可审阅',
@@ -773,8 +771,6 @@ export const t: Record<Lang, Dict> = {
         {
           title: 'Open and run',
           desc: 'No Node to prepare, no launch command to remember, no ports to juggle. The app ships a pinned runtime and Harness as one atomic release unit — double-click the icon and the workbench is there. Harness and the local UI recover independently, so one failure never takes down the window.',
-          image: '/app-screenshot.png',
-          imageAlt: 'DeepSeek YukiRyou main window: the Harness workbench in a native window',
         },
         {
           title: 'Every change reviewable',
